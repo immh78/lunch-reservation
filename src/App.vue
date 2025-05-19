@@ -19,7 +19,7 @@ const correctCount = ref(0);
 const wrongCount = ref(0);
 const progress = ref(0);
 const totalCount = ref(0);
-const currUser = ref("GW");
+const currUser = ref("CW");
 const preCorrectWord = ref({});
 const preWrongWord = ref({});
 
@@ -259,7 +259,7 @@ watch(chapters, (newValue, oldValue) => {
 onMounted(async () => {
     await getChapter(currUser.value);
 
-    await fetch('https://immh78.github.io/vite-project/words.json')
+    await fetch('words.json')
         .then(response => response.json())
         .then(data => {
             words.value = data.map(item => ({

@@ -14,13 +14,13 @@ export default defineConfig({
       registerType: 'autoUpdate', // service worker가 변경되면 자동으로 업데이트
       //includeAssets: ['favicon.svg', 'robots.txt', 'apple-touch-icon.png'], // 정적 파일
       manifest: {
-        name: '경원이 영어 단어장',
-        short_name: 'GW Eng word',
-        description: '경원이 영어 단어장',
+        name: '채원이 영어 단어장',
+        short_name: 'CW Eng word',
+        description: '채원이 영어 단어장',
         theme_color: '#13547a',
         background_color: '#ffffff',
         display: 'standalone',
-        start_url: '/eng-quiz-gw/',
+        start_url: '/eng-quiz-cw/',
         icons: [
           {
             src: 'notebook.png',
@@ -42,7 +42,7 @@ export default defineConfig({
       }
     })
   ],
-  base: "/eng-quiz-gw/",
+  base: "/eng-quiz-cw/",
   define: {
     // Vite에서는 process.env 대신 import.meta.env 사용이 권장됩니다
     // 하지만 define을 통해 전역 상수로 정의도 가능합니다 (선택적)
