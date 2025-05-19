@@ -19,7 +19,7 @@ const correctCount = ref(0);
 const wrongCount = ref(0);
 const progress = ref(0);
 const totalCount = ref(0);
-const currUser = ref("CW");
+const currUser = "CW";
 const preCorrectWord = ref({});
 const preWrongWord = ref({});
 
@@ -210,7 +210,7 @@ async function saveQuizChapter(data) {
 async function getChapter(user) {
     await fetchquizChapters();
 
-    console.log(user);
+    //console.log(user);
 
     if (quizChapters.value) {
         chapters.value = Object.values(quizChapters.value)
@@ -227,8 +227,6 @@ watch(chapters, (newValue, oldValue) => {
 
     let action = null;
     let chapter = "";
-    let user = "";
-
 
     // 추가된 값과 삭제된 값에 따라 로직 실행
     if (addedValues.length > 0) {
@@ -246,10 +244,10 @@ watch(chapters, (newValue, oldValue) => {
         // 초기값과 비교하여 달라진것만 update
         if (idx > -1) {
             // 변경된 값에 따라 추가 로직 실행
-            const data = { [idx]: { "chapter": chapter, "select": action, "user": currUser.value }};
+            const data = { [idx]: { "chapter": chapter, "select": action, "user": currUser }};
             quizChapters.value[idx].select = action;
             saveQuizChapter(data);
-            console.log("chapter update : ", quizChapters.value);
+            //console.log("chapter update : ", quizChapters.value);
         }
     }
 
@@ -257,7 +255,8 @@ watch(chapters, (newValue, oldValue) => {
 });
 
 onMounted(async () => {
-    await getChapter(currUser.value);
+
+    await getChapter(currUser);
 
     await fetch('words.json')
         .then(response => response.json())
