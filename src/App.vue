@@ -244,9 +244,9 @@ watch(chapters, (newValue, oldValue) => {
         // 초기값과 비교하여 달라진것만 update
         if (idx > -1) {
             // 변경된 값에 따라 추가 로직 실행
-            const data = { [idx]: { "chapter": chapter, "select": action, "user": currUser }};
+            const saveData = { [idx]: { "chapter": chapter, "select": action, "user": currUser }};
             quizChapters.value[idx].select = action;
-            saveQuizChapter(data);
+            saveQuizChapter(saveData);
             //console.log("chapter update : ", quizChapters.value);
         }
     }
