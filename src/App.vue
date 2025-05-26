@@ -1,6 +1,9 @@
 <script setup>
 import { database, ref as firebaseRef, get, update } from "./config/firebase";
 import { ref, watch, onMounted } from "vue";
+import { useLogger } from './composables/useLogger';
+
+useLogger();
 
 const chapters = ref([]);
 //const chapters = ref(["Day 10", "Day 11"]);

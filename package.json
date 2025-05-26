@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fingerprintjs/fingerprintjs": "^4.6.2",
     "@mdi/font": "^7.4.47",
     "dotenv": "^16.5.0",
     "firebase": "^11.7.3",
