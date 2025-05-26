@@ -15,9 +15,14 @@ const logPageVisit = async () => {
   //console.log('Page ID:', pageId); // 디버깅용 로그
 
   // 3. 현재 시각
-  const now = new Date();
-  const datetime = now.toISOString().replace(/[-T:.Z]/g, '').slice(0, 14); // "20250512041212" 형식
-
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+  const datetime = d.getFullYear()
+    + String(d.getMonth() + 1).padStart(2, '0')
+    + String(d.getDate()).padStart(2, '0')
+    + String(d.getHours()).padStart(2, '0')
+    + String(d.getMinutes()).padStart(2, '0')
+    + String(d.getSeconds()).padStart(2, '0');
+    
   // 4. 로그 구조
   const logEntry = { datetime, visitorId };
   const logsRef = ref(database, `logs/${pageId}`);
