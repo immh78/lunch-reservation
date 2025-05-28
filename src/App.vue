@@ -270,7 +270,7 @@ function makeChoiceMeaning() {
     }
 
     choiceMeanings.value = shuffleArray(choiceMeanings.value);
-    console.log(choiceMeanings.value);
+    //console.log(choiceMeanings.value);
 }
 
 function getRandomMeaning() {
