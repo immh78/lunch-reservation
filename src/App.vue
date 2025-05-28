@@ -58,6 +58,7 @@ function changeChapter(param) {
     initValue();
     selectingWord(param);
     pickRandomWord();
+    if (isChoiceMode) makeChoiceMeaning();
 }
 
 function pickRandomWord() {
