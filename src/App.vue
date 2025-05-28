@@ -274,8 +274,9 @@ function makeChoiceMeaning() {
 }
 
 function getRandomMeaning() {
-    const index = Math.floor(Math.random() * words.value.length);
-    return words.value[index].meaning;
+    const paramWords = words.value.filter(item => item.word !== currentWord.value.word);
+    const index = Math.floor(Math.random() * paramWords.length);
+    return paramWords[index].meaning;
 }
 
 function shuffleArray(array) {
