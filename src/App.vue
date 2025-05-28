@@ -292,10 +292,10 @@ function shuffleArray(array) {
 
 function onclick_meaning(isCorrect) {
     if (isCorrect) {
-        markCorrect();        
+        markCorrect();
     } else {
         markWrong();
-        
+
     }
 }
 
@@ -303,7 +303,15 @@ onMounted(async () => {
 
     await getChapter(currUser);
 
-    await fetch('words.json')
+    let wordsFilePath = "";
+
+    if (currUser === "CW") {
+        wordsFilePath = 'words.json';
+    } else {
+        wordsFilePath = 'https://immh78.github.io/eng-quiz-cw/words.json';
+    }
+
+    await fetch(wordsFilePath)
         .then(response => response.json())
         .then(data => {
             words.value = data.map(item => ({
@@ -371,7 +379,7 @@ onMounted(async () => {
                     <v-col cols="auto">
                         <span id="word" :style="{ fontSize: wordFontSize + 'px' }" @click="speechWord()">{{
                             currentWord.word
-                            }}</span>
+                        }}</span>
                         <span id="wrong">
                             <v-icon color="red-darken-4" v-for="n in currentWord.wrongCount">mdi-close-thick</v-icon>
                         </span>
@@ -403,8 +411,8 @@ onMounted(async () => {
                             variant="text" size="24px" @click="cancelWrong()"></v-btn>
                     </v-col>
                 </v-row>
-                <v-sheet v-if="wrongWords.length > 0 && !isChoiceMode" class="sheet pa-4 mx-auto" rounded="lg" width="92%"
-                    color="#fff2f4">
+                <v-sheet v-if="wrongWords.length > 0 && !isChoiceMode" class="sheet pa-4 mx-auto" rounded="lg"
+                    width="92%" color="#fff2f4">
                     <v-row>
                         <v-col cols="auto">
                             <v-chip v-for="wrongWord in wrongWords" color="red" text-color="white" class="chip-spacing"
