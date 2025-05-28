@@ -115,6 +115,7 @@ function markCorrect() {
     //console.log("#1", preCorrectWord.value);
 
     pickRandomWord();
+    if (isChoiceMode) makeChoiceMeaning();
     updateProgress();
 }
 
@@ -138,6 +139,7 @@ function markWrong() {
     preWrongWord.value = { ...currentWord.value };
 
     pickRandomWord();
+    if (isChoiceMode) makeChoiceMeaning();
 }
 
 function cancelCorrect() {
@@ -290,11 +292,10 @@ function shuffleArray(array) {
 
 function onclick_meaning(isCorrect) {
     if (isCorrect) {
-        markCorrect();
-        makeChoiceMeaning();
+        markCorrect();        
     } else {
         markWrong();
-        makeChoiceMeaning();
+        
     }
 }
 
