@@ -5,8 +5,9 @@ import { useLogger } from './composables/useLogger';
 
 useLogger();
 
+const currUser = "CW";
+
 const chapters = ref([]);
-//const chapters = ref(["Day 10", "Day 11"]);
 const toggleMode = ref("quiz");
 const toggleChapter = ref("");
 const words = ref([]);
@@ -17,12 +18,12 @@ const wordFontSize = ref(70);
 const isMeaningView = ref(false);
 const isMeaningWrongWordView = ref(false);
 const isSetPopup = ref(false);
+const isWrong = ref(false);
 const currentWord = ref({ "word": "Loaing..." });
 const correctCount = ref(0);
 const wrongCount = ref(0);
 const progress = ref(0);
 const totalCount = ref(0);
-const currUser = "CW";
 const preCorrectWord = ref({});
 const preWrongWord = ref({});
 const isChoiceMode = ref(false);
@@ -290,14 +291,20 @@ function shuffleArray(array) {
     return shuffled
 }
 
-function onclick_meaning(isCorrect) {
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function onclick_meaning(isCorrect) {
     if (isCorrect) {
         markCorrect();
     } else {
+        isWrong.value = true;
+        await sleep(1000)
+        isWrong.value = false;
         markWrong();
 
     }
 }
+
 
 onMounted(async () => {
 
@@ -424,7 +431,7 @@ onMounted(async () => {
                 </v-sheet>
                 <v-sheet v-if="isChoiceMode" class="sheet pa-4 mx-auto" rounded="lg" width="92%" color="#f2fff4">
                     <v-row v-for="item in choiceMeanings">
-                        <v-chip color="green" text-color="white" class="chip-spacing"
+                        <v-chip :color="isWrong && item.isCorrect ? 'red' : 'green'" text-color="white" class="chip-spacing"
                             @click="onclick_meaning(item.isCorrect)">
                             {{ item.meaning }}
                         </v-chip>
