@@ -51,6 +51,7 @@ function changeMode() {
         toggleChapter.value = "";
         selectingWord('');
         pickRandomWord();
+        if (isChoiceMode) makeChoiceMeaning();
     }
 }
 
@@ -181,6 +182,7 @@ function initValue() {
     isMeaningView.value = false;
     wrongWords.value = [];
     selectWords.value = [];
+    choiceMeanings.value = [];
 }
 
 function showMeaningWrongWord(param) {
