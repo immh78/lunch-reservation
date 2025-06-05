@@ -194,7 +194,7 @@ function showMeaningWrongWord(param) {
 }
 
 async function fetchquizChapters() {
-    const dbRef = firebaseRef(database, "eng-quiz-chapter");
+    const dbRef = firebaseRef(database, "eng-quiz-chapter_old");
     await get(dbRef)
         .then(snapshot => {
             if (snapshot.exists()) {
@@ -211,7 +211,7 @@ async function fetchquizChapters() {
 
 async function saveQuizChapter(data) {
     try {
-        const dbRef = firebaseRef(database, "eng-quiz-chapter");
+        const dbRef = firebaseRef(database, "eng-quiz-chapter_old");
         await update(dbRef, data); // 데이터를 저장
         console.log("Data saved successfully!");
     } catch (err) {
