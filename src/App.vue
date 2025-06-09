@@ -12,8 +12,7 @@ onMounted(() => {
   onAuthStateChanged(auth, (user) => {
     if (user) {
       userStore.setUser({
-        email: user.email,
-        displayName: user.displayName,
+        email: user.email
       });
     } else {
       userStore.clearUser();
@@ -36,7 +35,4 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.v-container {
-  margin-top: 50px;
-}
 </style>

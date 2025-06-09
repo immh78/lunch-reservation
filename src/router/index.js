@@ -21,9 +21,16 @@ const routes = [
     name: 'Login',
     component: Login
   },
+  {
+    path: '/register',
+    name: 'Register',
+    component: () => import('../pages/Register.vue')
+  }
 ];
 
 export default createRouter({
   history: createWebHashHistory('/lunch-reservation/'),
   routes,
 });
+
+
