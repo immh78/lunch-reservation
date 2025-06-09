@@ -20,14 +20,9 @@ const visit = ref({});
 
 const headers = [
   { title: '식당', align: 'start', key: 'name', value: 'name' },
-  { title: '방문일', align: 'center', sortable: false, key: 'lastDate', value: 'lastDate' },
+  { title: '방문일', align: 'center', key: 'lastDate', value: 'lastDate' },
   { title: '전화', align: 'end', sortable: false, key: 'telNo', value: 'telNo' },
 ];
-
-
-
-
-
 
 async function logout() {
   await signOut(auth);
@@ -251,9 +246,7 @@ console.log('user', user);
           <v-btn @click="isMenuPopup = false" icon="mdi-close-thick"></v-btn>
         </v-card-actions>
       </v-card>
-    </v-dialog>
-
-    
+    </v-dialog>    
   </v-app>
 
 </template>
