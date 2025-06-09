@@ -17,7 +17,6 @@ const restaurant = ref([]);
 const visitLog = ref([]);
 const isMenuPopup = ref(false);
 const visit = ref({});
-const restaurantTelNo = ref("");
 
 const headers = [
   { title: '식당', align: 'start', key: 'name', value: 'name' },
@@ -154,12 +153,6 @@ function foodImage(s) {
   return icon;
 }
 
-function callRestaurant(telNo) {
-  //window.location.href = `tel:${this.telNo}`;
-  restaurantTelNo.value = telNo;
-  this.$refs.telLink.click();
-}
-
 function selectMenu(item) {
   visit.value.date = getToday();
   visit.value.restaurantId = item.id;
@@ -237,7 +230,9 @@ console.log('user', user);
         </template>
 
         <template v-slot:item.telNo="{ item }">
-          <v-btn class="pa-0" icon="mdi-phone" size="small" @click="callRestaurant(item.telNo)"></v-btn>
+          <v-btn class="pa-0" icon="mdi-phone" size="small" :href="'tel:' + item.telNo"
+          target="_self">
+          </v-btn>
         </template>
       </v-data-table>
     </v-main>
@@ -258,10 +253,7 @@ console.log('user', user);
       </v-card>
     </v-dialog>
 
-    <a :href="`tel:${restaurantTelNo}`"
-      ref="telLink"
-      style="display: none"
-    ></a>
+    
   </v-app>
 
 </template>
