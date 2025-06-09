@@ -17,6 +17,7 @@ const restaurant = ref([]);
 const visitLog = ref([]);
 const isMenuPopup = ref(false);
 const visit = ref({});
+const restaurantTelNo = ref("");
 
 const headers = [
   { title: '식당', align: 'start', key: 'name', value: 'name' },
@@ -154,7 +155,9 @@ function foodImage(s) {
 }
 
 function callRestaurant(telNo) {
-  window.location.href = `tel:${this.telNo}`;
+  //window.location.href = `tel:${this.telNo}`;
+  restaurantTelNo.value = telNo;
+  this.$refs.telLink.click();
 }
 
 function selectMenu(item) {
@@ -254,6 +257,11 @@ console.log('user', user);
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <a :href="`tel:${restaurantTelNo}`"
+      ref="telLink"
+      style="display: none"
+    ></a>
   </v-app>
 
 </template>
