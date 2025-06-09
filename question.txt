@@ -8,4 +8,12 @@ Web App의 로그인 기능을 개발
  - main page에 접속시 쿠키에 로그인 정보가 없으면 로그인 페이지로 이동
  - 로그인시 pinia로 권한정보 관리
  - 메인 화면에는 접속자의 정보를 표기(email등)
+ - pinia persistedState 적용
+ - googleProvider, signInWithRedirect, getRedirectResult 사용
+ - base url : /lunch-reservation
  
+수정(작성)해야할 소스
+ - /src/pages/Login.vue : 로그인 페이지
+ - /src/pages/Main.vue : 메인 페이지
+ - /src/router/index.js : Route 설정 js
+ - /src/config/firebase.js : firebase 설정 js

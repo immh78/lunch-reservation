@@ -38,8 +38,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { signInWithPopup } from 'firebase/auth';
+import { ref, onMounted } from 'vue';
+import { signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { auth, googleProvider } from '../config/firebase';
 import { useRouter } from 'vue-router';
 import { useCookies } from '@vueuse/integrations/useCookies';
@@ -49,22 +49,16 @@ const email = ref('');
 const password = ref('');
 const showPassword = ref(false);
 const loading = ref(false);
+
 const router = useRouter();
 const cookies = useCookies();
-const userStore = useUserStore();
+const userStore = useUserStore(); // ✅ 여기서 실행해서 인스턴스를 얻음
 
+// 리디렉션 방식 로그인
 const loginWithGoogle = async () => {
   try {
     loading.value = true;
-
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
-    const token = await user.getIdToken();
-
-    cookies.set('authToken', token);
-    userStore.setUser({ email: user.email, displayName: user.displayName });
-
-    router.push('/');
+    await signInWithRedirect(auth, googleProvider);
   } catch (error) {
     console.error('Google 로그인 실패:', error.message);
     alert('로그인에 실패했습니다.');
@@ -72,7 +66,21 @@ const loginWithGoogle = async () => {
     loading.value = false;
   }
 };
+
+// 리디렉션 결과 처리
+onMounted(async () => {
+  const result = await getRedirectResult(auth);
+  if (result?.user) {
+    const user = result.user;
+    const token = await user.getIdToken();
+
+    cookies.set('authToken', token);
+    userStore.setUser({ email: user.email, displayName: user.displayName }); // ✅ 고쳐진 부분
+    router.push('/');
+  }
+});
 </script>
+
 
 <style scoped>
 .fill-height {
