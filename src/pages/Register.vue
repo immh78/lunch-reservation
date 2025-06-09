@@ -54,7 +54,7 @@ async function saveUser() {
     };
 
     const dbRef = firebaseRef(database, 'user');
-    await set(dbRef, data)
+    await update(dbRef, data)
         .then(() => {
             console.log("User data saved successfully.");
         })
