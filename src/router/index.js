@@ -19,7 +19,14 @@ const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: Login
+    component: Login,
+    beforeEnter: (to, from, next) => {
+      if (isLoggedIn()) {
+        next('/');
+      } else {
+        next();
+      }
+    }
   },
   {
     path: '/register',
