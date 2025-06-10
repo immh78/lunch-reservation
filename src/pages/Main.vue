@@ -243,7 +243,7 @@ onMounted(async () => {
       <template v-slot:append>
         <v-btn icon="mdi-logout" @click="logout()"></v-btn>
       </template>
-      <v-app-bar-title><v-btn class="pa-0" @click="selectData()" :icon="titleIcon" size="large" flat></v-btn> 식권대장 점심</v-app-bar-title>
+      <v-app-bar-title><v-icon @click="selectData()">{{titleIcon}}</v-icon> 식권대장 점심</v-app-bar-title>
     </v-app-bar>
     <v-main>
       <v-data-table :headers="headers" :items="restaurant" no-data-text="조회중입니다." loading-text="조회중입니다."
