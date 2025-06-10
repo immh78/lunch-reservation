@@ -18,6 +18,9 @@ const visitLog = ref([]);
 const isMenuPopup = ref(false);
 const visit = ref({});
 const isChoiceMenu = ref(false);
+const titleIcon = ref("mdi-food");
+
+
 
 const headers = [
   { title: '식당', align: 'start', key: 'name', value: 'name' },
@@ -209,17 +212,24 @@ async function deleteMenu() {
   isMenuPopup.value = false;
 }
 
-onMounted(async () => {
-  //console.log("auth.currentUser.uid", auth.currentUser.uid);
+async function selectData() {
+  titleIcon.value = "mdi-refresh";
   await selectUser();
   await selectVisitLog();
   await selectRestaurant();
+  titleIcon.value = "mdi-food";
+}
 
+onMounted(async () => {
+  //console.log("auth.currentUser.uid", auth.currentUser.uid);
+  await selectData();
   //console.log('userInfo', userInfo.value);
   //console.log('restaurant', restaurant.value);
   //console.log('visitLog', visitLog.value);
 
 });
+
+
 
 //console.log('user', user);
 </script>
@@ -233,7 +243,7 @@ onMounted(async () => {
       <template v-slot:append>
         <v-btn icon="mdi-logout" @click="logout()"></v-btn>
       </template>
-      <v-app-bar-title><v-icon>mdi-food</v-icon> 식권대장 점심</v-app-bar-title>
+      <v-app-bar-title><v-btn @click="selectData()" :icon="titleIcon" variant="text"></v-btn> 식권대장 점심</v-app-bar-title>
     </v-app-bar>
     <v-main>
       <v-data-table :headers="headers" :items="restaurant" no-data-text="조회중입니다." loading-text="조회중입니다."
