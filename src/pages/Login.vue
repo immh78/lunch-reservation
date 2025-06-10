@@ -4,7 +4,7 @@
       <v-card-title class="text-h5 text-center">로그인</v-card-title>
 
       <v-form @submit.prevent="login()">
-        <v-text-field v-model="email" label="Email" prepend-inner-icon="mdi-account" type="email" required />
+        <v-text-field v-model="email" label="Email" prepend-inner-icon="mdi-email" type="email" required />
 
         <v-text-field v-model="password" label="Password" prepend-inner-icon="mdi-lock"
           :type="showPassword ? 'text' : 'password'" :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
