@@ -5,7 +5,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { useRouter } from 'vue-router';
 import { useCookies } from '@vueuse/integrations/useCookies';
-import { database, ref as firebaseRef, get, update } from "../config/firebase";
+import { database, ref as firebaseRef, get, update, remove } from "../config/firebase";
 
 const userStore = useUserStore();
 const router = useRouter();
@@ -17,6 +17,7 @@ const restaurant = ref([]);
 const visitLog = ref([]);
 const isMenuPopup = ref(false);
 const visit = ref({});
+const isChoiceMenu = ref(false);
 
 const headers = [
   { title: '식당', align: 'start', key: 'name', value: 'name' },
@@ -63,7 +64,7 @@ async function selectRestaurant() {
       .filter(log => log.restaurantId === r.id)
       .sort((a, b) => b.date.localeCompare(a.date)); // 최신 순 정렬
 
-    console.log('logs', r.id, logs);
+    //console.log('logs', r.id, logs);
 
     const latest = logs[0];
     if (latest) {
@@ -151,9 +152,13 @@ function foodImage(s) {
 function selectMenu(item) {
   visit.value.date = getToday();
   visit.value.restaurantId = item.id;
+  visit.value.menu = item.lastMenu;
+  
+  isChoiceMenu.value = item.lastDate === getToday();
+
   isMenuPopup.value = true;
 
-  console.log(visit.value);
+  //console.log(visit.value);
 }
 
 
@@ -168,7 +173,11 @@ function menuList(id) {
 }
 
 async function saveMenu() {
-  console.log("menu", visit.value);
+  //console.log("menu", visit.value);
+
+  if ( visitLog.value[visitLog.value.length -1].date === getToday() ) {
+    visitLog.value.pop();
+  }
 
   const data = {
     [visitLog.value.length]: visit.value
@@ -186,19 +195,33 @@ async function saveMenu() {
   isMenuPopup.value = false;
 }
 
+async function deleteMenu() {
+
+  try {
+    const dbRef = firebaseRef(database, "lunch-resv/visitLog/" + auth.currentUser.uid + "/" + (visitLog.value.length - 1));
+    await remove(dbRef); // 데이터를 저장
+  } catch (err) {
+    console.error("Error saving data:", err);
+  }
+  
+  await selectVisitLog();
+  await selectRestaurant();
+  isMenuPopup.value = false;
+}
+
 onMounted(async () => {
-  console.log("auth.currentUser.uid", auth.currentUser.uid);
+  //console.log("auth.currentUser.uid", auth.currentUser.uid);
   await selectUser();
   await selectVisitLog();
   await selectRestaurant();
 
-  console.log('userInfo', userInfo.value);
-  console.log('restaurant', restaurant.value);
-  console.log('visitLog', visitLog.value);
+  //console.log('userInfo', userInfo.value);
+  //console.log('restaurant', restaurant.value);
+  //console.log('visitLog', visitLog.value);
 
 });
 
-console.log('user', user);
+//console.log('user', user);
 </script>
 
 <template>
@@ -216,7 +239,7 @@ console.log('user', user);
       <v-data-table :headers="headers" :items="restaurant" no-data-text="조회중입니다." loading-text="조회중입니다."
         hide-default-footer items-per-page="-1" :show-items-per-page="false">
         <template v-slot:item.name="{ item }">
-          <v-btn :variant="item.lastDate === getToday() ? 'flat' : 'tonal'" color="primary"
+          <v-btn :variant="item.lastDate === getToday() ? 'flat' : 'tonal'" color="primary" class="px-1"
             @click="selectMenu(item)"><v-icon>{{ foodImage(item.kind) }}</v-icon> {{ item.name }}</v-btn>
         </template>
         <template v-slot:item.lastDate="{ item }">
@@ -242,7 +265,7 @@ console.log('user', user);
         </v-card-text>
         <v-card-actions>
           <v-btn @click="saveMenu()" icon="mdi-check-bold"></v-btn>
-          <!-- <v-btn @click="resvDelete(resvKey)" :disabled="isResvAdd" icon="mdi-delete"></v-btn> -->
+          <v-btn @click="deleteMenu()" :disabled="!isChoiceMenu" icon="mdi-delete"></v-btn>
           <v-btn @click="isMenuPopup = false" icon="mdi-close-thick"></v-btn>
         </v-card-actions>
       </v-card>

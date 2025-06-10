@@ -21,12 +21,12 @@ export default defineConfig({
       "theme_color": "#000000",
       "icons": [
         {
-          "src": "/lunch-reservation/notebook.png",
+          "src": "/lunch-reservation/rice.png",
           "sizes": "192x192",
           "type": "image/png"
         },
         {
-          "src": "/lunch-reservation/notebook.png",
+          "src": "/lunch-reservation/rice.png",
           "sizes": "512x512",
           "type": "image/png"
         }
