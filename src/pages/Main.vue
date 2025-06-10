@@ -19,6 +19,7 @@ const isMenuPopup = ref(false);
 const visit = ref({});
 const isChoiceMenu = ref(false);
 const titleIcon = ref("mdi-food");
+const menuUrl = ref("");
 
 
 
@@ -156,10 +157,11 @@ function selectMenu(item) {
   visit.value.date = getToday();
   visit.value.restaurantId = item.id;
   visit.value.menu = item.lastMenu;
-  
+
   isChoiceMenu.value = item.lastDate === getToday();
 
   isMenuPopup.value = true;
+  menuUrl.value = item.menuUrl;
 
   //console.log(visit.value);
 }
@@ -178,7 +180,7 @@ function menuList(id) {
 async function saveMenu() {
   //console.log("menu", visit.value);
 
-  if ( visitLog.value[visitLog.value.length -1].date === getToday() ) {
+  if (visitLog.value[visitLog.value.length - 1].date === getToday()) {
     visitLog.value.pop();
   }
 
@@ -192,7 +194,7 @@ async function saveMenu() {
   } catch (err) {
     console.error("Error saving data:", err);
   }
-  
+
   await selectVisitLog();
   await selectRestaurant();
   isMenuPopup.value = false;
@@ -206,7 +208,7 @@ async function deleteMenu() {
   } catch (err) {
     console.error("Error saving data:", err);
   }
-  
+
   await selectVisitLog();
   await selectRestaurant();
   isMenuPopup.value = false;
@@ -243,7 +245,7 @@ onMounted(async () => {
       <template v-slot:append>
         <v-btn icon="mdi-logout" @click="logout()"></v-btn>
       </template>
-      <v-app-bar-title><v-icon @click="selectData()">{{titleIcon}}</v-icon> 식권대장 점심</v-app-bar-title>
+      <v-app-bar-title><v-icon @click="selectData()">{{ titleIcon }}</v-icon> 식권대장 점심</v-app-bar-title>
     </v-app-bar>
     <v-main>
       <v-data-table :headers="headers" :items="restaurant" no-data-text="조회중입니다." loading-text="조회중입니다."
@@ -258,20 +260,22 @@ onMounted(async () => {
         </template>
 
         <template v-slot:item.telNo="{ item }">
-          <v-btn class="pa-0" icon="mdi-phone" size="small" :href="'tel:' + item.telNo"
-          target="_self">
+          <v-btn class="pa-0" icon="mdi-phone" size="small" :href="'tel:' + item.telNo" target="_self">
           </v-btn>
         </template>
       </v-data-table>
     </v-main>
 
     <v-dialog v-model="isMenuPopup" max-width="600px">
-      <v-card>
-        <v-card-title>메뉴 선택</v-card-title>
+      <v-card title="메뉴 선택">
+        <template #append>
+          <v-btn icon variant="text" :href="menuUrl" target="_blank" rel="noopener">
+            <v-icon>mdi-feature-search-outline</v-icon>
+          </v-btn>
+        </template>
         <v-card-text>
           <v-combobox v-model="visit.menu" label="메뉴" :items="menuList(visit.restaurantId)"
             variant="outlined"></v-combobox>
-
         </v-card-text>
         <v-card-actions>
           <v-btn @click="saveMenu()" icon="mdi-check-bold"></v-btn>
@@ -279,7 +283,7 @@ onMounted(async () => {
           <v-btn @click="isMenuPopup = false" icon="mdi-close-thick"></v-btn>
         </v-card-actions>
       </v-card>
-    </v-dialog>    
+    </v-dialog>
   </v-app>
 
 </template>
