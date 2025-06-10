@@ -18,6 +18,7 @@ const visitLog = ref([]);
 const isMenuPopup = ref(false);
 const visit = ref({});
 const titleIcon = ref("mdi-food");
+const blockRestaurant = ref([]);
 const menuPopupRef = ref({});
 
 
@@ -150,7 +151,7 @@ function foodImage(s) {
   return icon;
 }
 
-function selectMenu(item) {
+function choiceMenu(item) {
   visit.value.date = getToday();
   visit.value.restaurantId = item.id;
   visit.value.menu = item.lastMenu;
@@ -160,7 +161,7 @@ function selectMenu(item) {
   menuPopupRef.value.name = item.name;
 
   isMenuPopup.value = true;
-  
+
   //console.log(visit.value);
 }
 
@@ -220,6 +221,19 @@ async function selectData() {
   titleIcon.value = "mdi-food";
 }
 
+function addBlockRestaurant() {
+  if (!blockRestaurant.value.includes(visit.value.restaurantId)) {
+    blockRestaurant.value.push(visit.value.restaurantId);
+  }
+}
+
+function delBlockRestaurant() {
+  const index = blockRestaurant.value.indexOf(visit.value.restaurantId);
+  if (index > -1) {
+    blockRestaurant.value.splice(index, 1);  // 배열에서 제거
+  }
+}
+
 onMounted(async () => {
   //console.log("auth.currentUser.uid", auth.currentUser.uid);
   await selectData();
@@ -250,7 +264,7 @@ onMounted(async () => {
         hide-default-footer items-per-page="-1" :show-items-per-page="false">
         <template v-slot:item.name="{ item }">
           <v-btn :variant="item.lastDate === getToday() ? 'flat' : 'tonal'" color="primary" class="px-1"
-            @click="selectMenu(item)"><v-icon>{{ foodImage(item.kind) }}</v-icon> {{ item.name }}</v-btn>
+            @click="choiceMenu(item)"><v-icon>{{ foodImage(item.kind) }}</v-icon> {{ item.name }}</v-btn>
         </template>
         <template v-slot:item.lastDate="{ item }">
           <span>{{ item.lastDate ? formatKoreanDate(item.lastDate) : '' }}</span><br />
@@ -276,6 +290,8 @@ onMounted(async () => {
             variant="outlined"></v-combobox>
         </v-card-text>
         <v-card-actions>
+          <v-btn icon="mdi-cancel" @click="addBlockRestaurant()"></v-btn>
+          <v-spacer></v-spacer>
           <v-btn @click="saveMenu()" icon="mdi-check-bold"></v-btn>
           <v-btn @click="deleteMenu()" :disabled="!menuPopupRef.isChoice" icon="mdi-delete"></v-btn>
           <v-btn @click="isMenuPopup = false" icon="mdi-close-thick"></v-btn>
