@@ -5,7 +5,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { useRouter } from 'vue-router';
 import { useCookies } from '@vueuse/integrations/useCookies';
-import { database, ref as firebaseRef, get, update, remove } from "../config/firebase";
+import { database, ref as firebaseRef, get, set, update, remove } from "../config/firebase";
 
 const userStore = useUserStore();
 const router = useRouter();
@@ -78,12 +78,33 @@ async function selectRestaurant() {
     }
   });
 
+  // restaurant.value = restaurant.value.sort((a, b) => {
+  //   if (!a.lastDate && !b.lastDate) return 0;           // 둘 다 null
+  //   if (!a.lastDate) return 1;                          // a가 null이면 뒤로
+  //   if (!b.lastDate) return -1;                         // b가 null이면 앞으로
+  //   return a.lastDate.localeCompare(b.lastDate);        // 문자열 날짜 내림차순
+  // });
+
   restaurant.value = restaurant.value.sort((a, b) => {
-    if (!a.lastDate && !b.lastDate) return 0;           // 둘 다 null
-    if (!a.lastDate) return 1;                          // a가 null이면 뒤로
-    if (!b.lastDate) return -1;                         // b가 null이면 앞으로
-    return a.lastDate.localeCompare(b.lastDate);        // 문자열 날짜 내림차순
+    const isBlockedA = blockRestaurant.value.includes(a.id);
+    const isBlockedB = blockRestaurant.value.includes(b.id);
+
+    // 1. 둘 중 하나라도 block이면 맨 뒤로
+    if (isBlockedA && !isBlockedB) return 1;
+    if (!isBlockedA && isBlockedB) return -1;
+    if (isBlockedA && isBlockedB) return 0;
+
+    // 2. 날짜가 null인 경우 뒤로
+    if (!a.lastDate && !b.lastDate) return 0;
+    if (!a.lastDate) return 1;
+    if (!b.lastDate) return -1;
+
+    // 3. 날짜가 있는 경우 최신순 정렬
+    return a.lastDate.localeCompare(b.lastDate);
   });
+
+  //console.log('restaurant', restaurant.value);
+  //console.log('blockRestaurant', blockRestaurant.value);
 
 }
 
@@ -221,22 +242,56 @@ async function selectData() {
   titleIcon.value = "mdi-food";
 }
 
+async function selectBlockRestaurant() {
+  const dbRef = firebaseRef(database, "lunch-resv/blockRestaurant/" + auth.currentUser.uid);
+  get(dbRef)
+    .then(snapshot => {
+      if (snapshot.exists()) {
+        blockRestaurant.value = snapshot.val();
+      } else {
+        blockRestaurant.value = [];
+      }
+    })
+    .catch(err => {
+      console.error("Error fetching data:", err);
+    });
+}
+
 function addBlockRestaurant() {
   if (!blockRestaurant.value.includes(visit.value.restaurantId)) {
     blockRestaurant.value.push(visit.value.restaurantId);
   }
+
+  saveBlockRestaurant()
 }
 
-function delBlockRestaurant() {
+
+
+function removeBlockRestaurant() {
   const index = blockRestaurant.value.indexOf(visit.value.restaurantId);
   if (index > -1) {
     blockRestaurant.value.splice(index, 1);  // 배열에서 제거
   }
+  saveBlockRestaurant()
+}
+
+
+async function saveBlockRestaurant() {
+  try {
+    const dbRef = firebaseRef(database, "lunch-resv/blockRestaurant/" + auth.currentUser.uid);
+    await set(dbRef, blockRestaurant.value); // 데이터를 저장
+  } catch (err) {
+    console.error("Error saving data:", err);
+  }
+
+  await selectRestaurant();
 }
 
 onMounted(async () => {
   //console.log("auth.currentUser.uid", auth.currentUser.uid);
+  await selectBlockRestaurant()
   await selectData();
+
   //console.log('userInfo', userInfo.value);
   //console.log('restaurant', restaurant.value);
   //console.log('visitLog', visitLog.value);
@@ -290,7 +345,8 @@ onMounted(async () => {
             variant="outlined"></v-combobox>
         </v-card-text>
         <v-card-actions>
-          <v-btn icon="mdi-cancel" @click="addBlockRestaurant()"></v-btn>
+          <v-btn icon="mdi-cancel" :color="blockRestaurant.includes(visit.restaurantId) ? 'red' : 'black'"
+            @click="blockRestaurant.includes(visit.restaurantId) ? removeBlockRestaurant() : addBlockRestaurant()"></v-btn>
           <v-spacer></v-spacer>
           <v-btn @click="saveMenu()" icon="mdi-check-bold"></v-btn>
           <v-btn @click="deleteMenu()" :disabled="!menuPopupRef.isChoice" icon="mdi-delete"></v-btn>
