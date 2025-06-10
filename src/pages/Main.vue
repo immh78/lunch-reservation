@@ -17,9 +17,8 @@ const restaurant = ref([]);
 const visitLog = ref([]);
 const isMenuPopup = ref(false);
 const visit = ref({});
-const isChoiceMenu = ref(false);
 const titleIcon = ref("mdi-food");
-const menuUrl = ref("");
+const menuPopupRef = ref({});
 
 
 
@@ -49,7 +48,6 @@ async function selectUser() {
     });
 }
 
-
 async function selectRestaurant() {
   const dbRef = firebaseRef(database, "lunch-resv/restaurant");
   await get(dbRef)
@@ -61,7 +59,6 @@ async function selectRestaurant() {
     .catch(err => {
       //console.error("Error fetching data:", err);
     });
-
 
   restaurant.value.forEach(r => {
     const logs = visitLog.value
@@ -158,11 +155,12 @@ function selectMenu(item) {
   visit.value.restaurantId = item.id;
   visit.value.menu = item.lastMenu;
 
-  isChoiceMenu.value = item.lastDate === getToday();
+  menuPopupRef.value.isChoice = item.lastDate === getToday();
+  menuPopupRef.value.menuUrl = item.menuUrl;
+  menuPopupRef.value.name = item.name;
 
   isMenuPopup.value = true;
-  menuUrl.value = item.menuUrl;
-
+  
   //console.log(visit.value);
 }
 
@@ -267,9 +265,9 @@ onMounted(async () => {
     </v-main>
 
     <v-dialog v-model="isMenuPopup" max-width="600px">
-      <v-card title="메뉴 선택">
+      <v-card :title="menuPopupRef.name">
         <template #append>
-          <v-btn icon variant="text" :href="menuUrl" target="_blank" rel="noopener">
+          <v-btn icon variant="text" :href="menuPopupRef.menuUrl" target="_blank" rel="noopener">
             <v-icon>mdi-feature-search-outline</v-icon>
           </v-btn>
         </template>
@@ -279,7 +277,7 @@ onMounted(async () => {
         </v-card-text>
         <v-card-actions>
           <v-btn @click="saveMenu()" icon="mdi-check-bold"></v-btn>
-          <v-btn @click="deleteMenu()" :disabled="!isChoiceMenu" icon="mdi-delete"></v-btn>
+          <v-btn @click="deleteMenu()" :disabled="!menuPopupRef.isChoice" icon="mdi-delete"></v-btn>
           <v-btn @click="isMenuPopup = false" icon="mdi-close-thick"></v-btn>
         </v-card-actions>
       </v-card>
