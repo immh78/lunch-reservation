@@ -6,12 +6,14 @@ import { auth } from '../config/firebase';
 import { useRouter } from 'vue-router';
 import { useCookies } from '@vueuse/integrations/useCookies';
 import { database, ref as firebaseRef, get, set, update, remove } from "../config/firebase";
+import { useLogger } from '../composables/useLogger';
+
+useLogger();
 
 const userStore = useUserStore();
 const router = useRouter();
 const cookies = useCookies();
 
-const user = userStore.user;
 const userInfo = ref({});
 const restaurant = ref([]);
 const visitLog = ref([]);
@@ -21,13 +23,21 @@ const titleIcon = ref("mdi-food");
 const blockRestaurant = ref([]);
 const menuPopupRef = ref({});
 
-
+const isListPopup = ref(false);
+const listPopupTitle = ref('');
+const listTable = ref([]);
 
 const headers = [
   { title: '식당', align: 'start', key: 'name', value: 'name' },
   { title: '방문일', align: 'center', key: 'lastDate', value: 'lastDate' },
   { title: '전화', align: 'end', sortable: false, key: 'telNo', value: 'telNo' },
 ];
+
+const listHeaders = [
+  { title: '방문일', align: 'center', key: 'date', value: 'date' },
+  { title: '메뉴', align: 'start', key: 'menu', value: 'menu' },
+];
+
 
 async function logout() {
   await signOut(auth);
@@ -197,6 +207,12 @@ function menuList(id) {
   return uniqueMenus;
 }
 
+function saveListMenu(item) {
+  visit.value.menu = item.menu
+
+  saveMenu();
+  isListPopup.value = false;
+}
 async function saveMenu() {
   //console.log("menu", visit.value);
 
@@ -207,6 +223,8 @@ async function saveMenu() {
   const data = {
     [visitLog.value.length]: visit.value
   }
+
+  //console.log("data", data);
 
   try {
     const dbRef = firebaseRef(database, "lunch-resv/visitLog/" + auth.currentUser.uid);
@@ -287,6 +305,16 @@ async function saveBlockRestaurant() {
   await selectRestaurant();
 }
 
+function openListPopup(item) {
+  listPopupTitle.value = item.name;
+
+  isListPopup.value = true;
+  listTable.value = visitLog.value.filter(log => log.restaurantId === item.id)
+    .sort((a, b) => b.date.localeCompare(a.date)); // 최신 순 정렬
+
+  //console.log(visitLog.value);
+}
+
 onMounted(async () => {
   //console.log("auth.currentUser.uid", auth.currentUser.uid);
   await selectBlockRestaurant()
@@ -318,12 +346,15 @@ onMounted(async () => {
       <v-data-table :headers="headers" :items="restaurant" no-data-text="조회중입니다." loading-text="조회중입니다."
         hide-default-footer items-per-page="-1" :show-items-per-page="false">
         <template v-slot:item.name="{ item }">
-          <v-btn :variant="item.lastDate === getToday() ? 'flat' : 'tonal'" :color="blockRestaurant.includes(item.id) ? 'grey-darken-3' : 'primary'" class="px-1"
+          <v-btn :variant="item.lastDate === getToday() ? 'flat' : 'tonal'"
+            :color="blockRestaurant.includes(item.id) ? 'grey-darken-3' : 'primary'" class="px-1"
             @click="choiceMenu(item)"><v-icon>{{ foodImage(item.kind) }}</v-icon> {{ item.name }}</v-btn>
         </template>
         <template v-slot:item.lastDate="{ item }">
-          <span>{{ item.lastDate ? formatKoreanDate(item.lastDate) : '' }}</span><br />
-          <small>{{ item.lastMenu }}</small>
+          <div @click="item.lastDate ? openListPopup(item) : null">
+            <span>{{ item.lastDate ? formatKoreanDate(item.lastDate) : '' }}</span><br />
+            <small style="color:grey">{{ item.lastMenu }}</small>
+          </div>
         </template>
 
         <template v-slot:item.telNo="{ item }">
@@ -351,6 +382,25 @@ onMounted(async () => {
           <v-btn @click="saveMenu()" icon="mdi-check-bold"></v-btn>
           <v-btn @click="deleteMenu()" :disabled="!menuPopupRef.isChoice" icon="mdi-delete"></v-btn>
           <v-btn @click="isMenuPopup = false" icon="mdi-close-thick"></v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="isListPopup" max-width="600px">
+      <v-card :title="listPopupTitle">
+        <v-data-table :headers="listHeaders" :items="listTable" no-data-text="조회중입니다." loading-text="조회중입니다."
+          hide-default-footer items-per-page="-1" :show-items-per-page="false">
+          <template v-slot:item.date="{ item }">
+            <span>{{ formatKoreanDate(item.date) }}</span>
+          </template>
+
+          <template v-slot:item.menu="{ item }">
+            <span @click="saveListMenu(item)">{{ item.menu }}</span>
+          </template>
+        </v-data-table>
+
+        <v-card-actions>
+          <v-btn @click="isListPopup = false" icon="mdi-close-thick"></v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

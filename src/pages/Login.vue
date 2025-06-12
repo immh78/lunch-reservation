@@ -41,7 +41,6 @@ const loading = ref(false);
 
 const router = useRouter();
 const cookies = useCookies();
-const userStore = useUserStore(); // ✅ 여기서 실행해서 인스턴스를 얻음
 
 async function login() {
   try {
@@ -49,8 +48,7 @@ async function login() {
     const user = userCredential.user;
     const token = await user.getIdToken();
 
-    cookies.set('authToken', token);
-    userStore.setUser({ email: user.email });
+    cookies.set('authToken', token);    
 
     router.push('/');
   } catch (error) {
