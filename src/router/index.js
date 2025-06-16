@@ -33,9 +33,7 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach(async (to, from, next) => {
-  const userStore = useUserStore();
- 
+router.beforeEach( (to, from, next) => {
   // 로그인 필요
   if (to.meta.requiresAuth && !isLoggedIn()) {
     return next({ path: '/login', query: { redirect: to.fullPath } });
