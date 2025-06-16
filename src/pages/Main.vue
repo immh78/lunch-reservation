@@ -6,9 +6,6 @@ import { auth } from '../config/firebase';
 import { useRouter } from 'vue-router';
 import { useCookies } from '@vueuse/integrations/useCookies';
 import { database, ref as firebaseRef, get, set, update, remove } from "../config/firebase";
-import { useLogger } from '../composables/useLogger';
-
-useLogger();
 
 const userStore = useUserStore();
 const router = useRouter();
@@ -26,6 +23,7 @@ const menuPopupRef = ref({});
 const isListPopup = ref(false);
 const listPopupTitle = ref('');
 const listTable = ref([]);
+const uid = ref("");
 
 const headers = [
   { title: '식당', align: 'start', key: 'name', value: 'name' },
@@ -47,7 +45,7 @@ async function logout() {
 };
 
 async function selectUser() {
-  const dbRef = firebaseRef(database, "user/" + auth.currentUser.uid);
+  const dbRef = firebaseRef(database, "user/" + uid.value);
   await get(dbRef)
     .then(snapshot => {
       if (snapshot.exists()) {
@@ -119,7 +117,7 @@ async function selectRestaurant() {
 }
 
 async function selectVisitLog() {
-  const dbRef = firebaseRef(database, "lunch-resv/visitLog/" + auth.currentUser.uid);
+  const dbRef = firebaseRef(database, "lunch-resv/visitLog/" + uid.value);
   await get(dbRef)
     .then(snapshot => {
       if (snapshot.exists()) {
@@ -227,7 +225,7 @@ async function saveMenu() {
   //console.log("data", data);
 
   try {
-    const dbRef = firebaseRef(database, "lunch-resv/visitLog/" + auth.currentUser.uid);
+    const dbRef = firebaseRef(database, "lunch-resv/visitLog/" + uid.value);
     await update(dbRef, data); // 데이터를 저장
   } catch (err) {
     console.error("Error saving data:", err);
@@ -241,7 +239,7 @@ async function saveMenu() {
 async function deleteMenu() {
 
   try {
-    const dbRef = firebaseRef(database, "lunch-resv/visitLog/" + auth.currentUser.uid + "/" + (visitLog.value.length - 1));
+    const dbRef = firebaseRef(database, "lunch-resv/visitLog/" + uid.value + "/" + (visitLog.value.length - 1));
     await remove(dbRef); // 데이터를 저장
   } catch (err) {
     console.error("Error saving data:", err);
@@ -253,6 +251,7 @@ async function deleteMenu() {
 }
 
 async function selectData() {
+
   titleIcon.value = "mdi-refresh";
   await selectUser();
   await selectVisitLog();
@@ -261,7 +260,7 @@ async function selectData() {
 }
 
 async function selectBlockRestaurant() {
-  const dbRef = firebaseRef(database, "lunch-resv/blockRestaurant/" + auth.currentUser.uid);
+  const dbRef = firebaseRef(database, "lunch-resv/blockRestaurant/" + uid.value);
   get(dbRef)
     .then(snapshot => {
       if (snapshot.exists()) {
@@ -296,7 +295,7 @@ function removeBlockRestaurant() {
 
 async function saveBlockRestaurant() {
   try {
-    const dbRef = firebaseRef(database, "lunch-resv/blockRestaurant/" + auth.currentUser.uid);
+    const dbRef = firebaseRef(database, "lunch-resv/blockRestaurant/" + uid.value);
     await set(dbRef, blockRestaurant.value); // 데이터를 저장
   } catch (err) {
     console.error("Error saving data:", err);
@@ -316,13 +315,10 @@ function openListPopup(item) {
 }
 
 onMounted(async () => {
-  //console.log("auth.currentUser.uid", auth.currentUser.uid);
+  uid.value = userStore.user.uid;
+
   await selectBlockRestaurant()
   await selectData();
-
-  //console.log('userInfo', userInfo.value);
-  //console.log('restaurant', restaurant.value);
-  //console.log('visitLog', visitLog.value);
 
 });
 
