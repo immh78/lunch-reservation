@@ -1,10 +1,11 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
-import { database, ref as firebaseRef, get, push } from "../config/firebase";
+import { database, ref as firebaseRef, push } from "../config/firebase";
 import { isLoggedIn } from '../config/authGuard';
 import { useUserStore } from '../store/user';
 
 import Main from '../pages/Main.vue';
 import Login from '../pages/Login.vue';
+import Register from '../pages/Register.vue';
 
 const routes = [
   {
@@ -22,6 +23,7 @@ const routes = [
   {
     path: '/register',
     name: 'Register',
+    component: Register,
     meta: { requiresAuth: false, loggable: false }
   }
 ];
