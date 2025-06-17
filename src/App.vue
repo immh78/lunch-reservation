@@ -1,7 +1,5 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth, database, ref as firebaseRef, get } from './config/firebase';
 import { useUserStore } from './store/user';
 import { RouterView } from 'vue-router';
 
@@ -9,36 +7,15 @@ const ready = ref(false);
 const userStore = useUserStore();
 
 onMounted(() => {
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      userStore.setUser({
-        email: user.email,
-        name: await selectUserName(user.uid),
-        uid: user.uid
-      });
+    //console.log(userStore.user);
+
+    if (userStore.user.uid) {
+      ready.value = true;
     } else {
-      userStore.clearUser();
+      ready.value = false;
     }
-    ready.value = true; // ✅ 인증 처리 완료 후 렌더링 허용
-  });
+    
 });
-
-
-async function selectUserName(uid) {
-  const dbRef = firebaseRef(database, "user/" + uid);
-  let userInfo = "";
-  await get(dbRef)
-    .then(snapshot => {
-      if (snapshot.exists()) {
-        userInfo = snapshot.val();
-      }
-    })
-    .catch(err => {
-      //console.error("Error fetching data:", err);
-    });
-
-  return userInfo.name;
-}
 </script>
 
 <template>
