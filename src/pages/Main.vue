@@ -208,8 +208,9 @@ function menuList(id) {
 }
 
 function saveListMenu(item) {
-  visit.value.menu = item.menu
-
+  visit.value = item;
+  visit.value.date = getToday();
+  
   saveMenu();
   isListPopup.value = false;
 }
@@ -308,11 +309,12 @@ async function saveBlockRestaurant() {
 function openListPopup(item) {
   listPopupTitle.value = item.name;
 
-  isListPopup.value = true;
   listTable.value = visitLog.value.filter(log => log.restaurantId === item.id)
     .sort((a, b) => b.date.localeCompare(a.date)); // 최신 순 정렬
 
-  //console.log(visitLog.value);
+  console.log(listTable.value);
+
+  isListPopup.value = true;
 }
 
 onMounted(async () => {
