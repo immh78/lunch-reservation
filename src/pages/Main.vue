@@ -59,15 +59,19 @@ async function selectUser() {
 }
 
 async function selectRestaurant() {
+
   const dbRef = firebaseRef(database, "lunch-resv/restaurant");
   await get(dbRef)
     .then(snapshot => {
       if (snapshot.exists()) {
-        restaurant.value = snapshot.val();
+        const data = snapshot.val();
+        Object.keys(data).forEach(r => {
+          restaurant.value.push({...data[r], "id": r});
+        })
       }
     })
     .catch(err => {
-      //console.error("Error fetching data:", err);
+      console.error("Error fetching data:", err);
     });
 
   restaurant.value.forEach(r => {
@@ -86,6 +90,7 @@ async function selectRestaurant() {
       r.lastMenu = null;
     }
   });
+
 
   // restaurant.value = restaurant.value.sort((a, b) => {
   //   if (!a.lastDate && !b.lastDate) return 0;           // 둘 다 null
@@ -112,8 +117,9 @@ async function selectRestaurant() {
     return a.lastDate.localeCompare(b.lastDate);
   });
 
-  //console.log('restaurant', restaurant.value);
+  //console.log('restaurant #3', restaurant.value);
   //console.log('blockRestaurant', blockRestaurant.value);
+
 
 }
 
