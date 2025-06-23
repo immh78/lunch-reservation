@@ -491,7 +491,7 @@ onMounted(async () => {
           <v-text-field v-model="restaurantInfo.name" label="식당명" variant="outlined" :rules="[rules.required]" />
           <v-combobox v-model="restaurantInfo.kind" label="종류" :items="restaurantKind" variant="outlined"></v-combobox>
           <v-text-field v-model="restaurantInfo.telNo" label="전화번호" variant="outlined"></v-text-field>
-          <v-text-field v-model="restaurantInfo.menuUrl" label="메뉴 URL" variant="outlined"></v-text-field>
+          <v-text-field v-model="restaurantInfo.menuUrl" label="메뉴 URL" variant="outlined" class="menu-url-field"/>
         </v-card-text>
         <v-card-actions>
           <v-btn @click="saveRestaurant()" icon="mdi-check-bold"></v-btn>
@@ -501,3 +501,10 @@ onMounted(async () => {
     </v-dialog>
   </v-app>
 </template>
+
+<style scoped>
+.menu-url-field input {
+  white-space: nowrap;
+  overflow-x: auto;
+}
+</style>
