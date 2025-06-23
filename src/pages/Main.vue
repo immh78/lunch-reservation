@@ -484,7 +484,7 @@ onMounted(async () => {
     </v-dialog>
     <v-dialog v-model="isRestaurantPopup" max-width="600px">
       <v-card>
-        <v-card-title>{{ isRestaurantAdd ? "식당추가" : restaurantInfo.id }}</v-card-title>
+        <v-card-title>{{ isRestaurantAdd ? "식당 등록" : restaurantInfo.id }}</v-card-title>
         <v-card-text>
           <v-text-field v-if="isRestaurantAdd" v-model="restaurantInfo.id" label="식당 ID" variant="outlined"
             :rules="[rules.required, rules.uppercase]" @update:model-value="toUpper" />
