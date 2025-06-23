@@ -444,7 +444,9 @@ onMounted(async () => {
             <small v-if="isMobile" style="color:grey">{{ item.lastMenu }}</small>
           </div>
         </template>
-
+        <template v-slot:item.lastMenu="{ item }">
+            <span @click="item.lastDate ? openListPopup(item) : null">{{ item.lastMenu }}</span>
+        </template>
         <template v-slot:item.telNo="{ item }">
           <v-btn v-if="isMobile" class="pa-0" icon="mdi-phone" size="small" :href="'tel:' + item.telNo" />
           <div v-else>
