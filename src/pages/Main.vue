@@ -14,6 +14,7 @@ const cookies = useCookies();
 const userInfo = ref({});
 const restaurant = ref([]);
 const restaurantDB = ref({});
+const restaurantInfo = ref({});
 const visitLog = ref([]);
 const isMenuPopup = ref(false);
 const visit = ref({});
@@ -26,6 +27,13 @@ const listTable = ref([]);
 const uid = ref("");
 
 const isLoading = ref(false);
+const isRestaurantPopup = ref(false);
+const isRestaurantAdd = ref(false);
+
+const appMenu = [
+  { title: '식당 등록', action: addRestraurant },
+  { title: '로그아웃', action: logout }
+];
 
 const headers = [
   { title: '식당', align: 'start', key: 'name', value: 'name' },
@@ -37,6 +45,9 @@ const listHeaders = [
   { title: '방문일', align: 'center', key: 'date', value: 'date' },
   { title: '메뉴', align: 'start', key: 'menu', value: 'menu' },
 ];
+
+const restaurantKind = ['한식', '중식', '패스트푸드', '일식', '카페', '베이커리'];
+
 
 
 async function logout() {
@@ -59,6 +70,12 @@ async function selectUser() {
     });
 }
 
+
+function addRestraurant() {
+  restaurantInfo.value = {};
+  isRestaurantAdd.value = true;
+  isRestaurantPopup.value = true;
+}
 async function selectRestaurant() {
 
   const dbRef = firebaseRef(database, "lunch-resv/restaurant");
@@ -68,7 +85,7 @@ async function selectRestaurant() {
       if (snapshot.exists()) {
         restaurantDB.value = snapshot.val();
         Object.keys(restaurantDB.value).forEach(r => {
-          restaurant.value.push({...restaurantDB.value[r], "id": r});
+          restaurant.value.push({ ...restaurantDB.value[r], "id": r });
         })
       }
     })
@@ -121,8 +138,6 @@ async function selectRestaurant() {
 
   //console.log('restaurant #3', restaurant.value);
   //console.log('blockRestaurant', blockRestaurant.value);
-
-
 }
 
 async function selectVisitLog() {
@@ -260,6 +275,25 @@ async function deleteMenu() {
   isMenuPopup.value = false;
 }
 
+async function saveRestaurant() {
+  const data = {
+    "name": restaurantInfo.value.name,
+    "telNo": restaurantInfo.value.telNo,
+    "menuUrl": restaurantInfo.value.menuUrl,
+    "kind": restaurantInfo.value.kind
+  }
+
+  try {
+    const dbRef = firebaseRef(database, "lunch-resv/restaurant/" + restaurantInfo.value.id);
+    await update(dbRef, data); // 데이터를 저장
+  } catch (err) {
+    console.error("Error saving data:", err);
+  }
+
+  selectRestaurant();
+  isRestaurantPopup.value = false;
+}
+
 async function selectData() {
   isLoading.value = true;          // <-- 로딩 시작
   try {
@@ -294,8 +328,6 @@ function addBlockRestaurant() {
   saveBlockRestaurant()
 }
 
-
-
 function removeBlockRestaurant() {
   const index = blockRestaurant.value.indexOf(visit.value.restaurantId);
   if (index > -1) {
@@ -327,6 +359,25 @@ function openListPopup(item) {
   isListPopup.value = true;
 }
 
+function onClickEditRestaurant() {
+  restaurantInfo.value = restaurantDB.value[visit.value.restaurantId];
+  restaurantInfo.value.id = visit.value.restaurantId;
+
+  isRestaurantAdd.value = false;
+  isMenuPopup.value = false;
+  isRestaurantPopup.value = true;
+  
+}
+
+const rules = {
+  required: v => !!v || '필수 입력 값입니다.',
+  uppercase: v => /^[A-Z0-9]+$/.test(v) || '대문자와 숫자만 입력하세요.'
+}
+
+function toUpper(val) {
+  restaurantInfo.value.id = val.toUpperCase()
+}
+
 onMounted(async () => {
   uid.value = userStore.user.uid;
 
@@ -347,7 +398,16 @@ onMounted(async () => {
         <v-img gradient="to top right, rgba(19,84,122,.8), rgba(128,208,199,.8)"></v-img>
       </template>
       <template v-slot:append>
-        <v-btn icon="mdi-logout" @click="logout()"></v-btn>
+        <v-menu>
+          <template v-slot:activator="{ props }">
+            <v-btn icon="mdi-dots-vertical" variant="text" v-bind="props"></v-btn>
+          </template>
+          <v-list>
+            <v-list-item v-for="(menu, i) in appMenu" :key="i" :value="i" @click="menu.action">
+              <v-list-item-title>{{ menu.title }}</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
       </template>
       <v-app-bar-title class="d-flex align-center">
         <span class="d-inline-flex justify-center align-center mr-2" style="width:28px">
@@ -381,12 +441,14 @@ onMounted(async () => {
     </v-main>
 
     <v-dialog v-model="isMenuPopup" max-width="600px">
-      <v-card :title="menuPopupRef.name">
-        <template #append>
-          <v-btn icon variant="text" :href="menuPopupRef.menuUrl" target="_blank" rel="noopener">
+      <v-card>
+        <v-card-title class="d-flex align-center">{{ menuPopupRef.name }}
+          <v-icon class="ml-1" size="18px" @click="onClickEditRestaurant()">mdi-pencil</v-icon>
+          <v-spacer></v-spacer>
+          <v-btn variant="text" :href="menuPopupRef.menuUrl" target="_blank" rel="noopener">
             <v-icon>mdi-feature-search-outline</v-icon>
           </v-btn>
-        </template>
+        </v-card-title>
         <v-card-text>
           <v-combobox v-model="visit.menu" label="메뉴" :items="menuList(visit.restaurantId)"
             variant="outlined"></v-combobox>
@@ -420,6 +482,22 @@ onMounted(async () => {
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="isRestaurantPopup" max-width="600px">
+      <v-card>
+        <v-card-title>{{ isRestaurantAdd ? "식당추가" : restaurantInfo.id }}</v-card-title>
+        <v-card-text>
+          <v-text-field v-if="isRestaurantAdd" v-model="restaurantInfo.id" label="식당 ID" variant="outlined"
+            :rules="[rules.required, rules.uppercase]" @update:model-value="toUpper" />
+          <v-text-field v-model="restaurantInfo.name" label="식당명" variant="outlined" :rules="[rules.required]" />
+          <v-combobox v-model="restaurantInfo.kind" label="종류" :items="restaurantKind" variant="outlined"></v-combobox>
+          <v-text-field v-model="restaurantInfo.telNo" label="전화번호" variant="outlined"></v-text-field>
+          <v-text-field v-model="restaurantInfo.menuUrl" label="메뉴 URL" variant="outlined"></v-text-field>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn @click="saveRestaurant()" icon="mdi-check-bold"></v-btn>
+          <v-btn @click="isRestaurantPopup = false" icon="mdi-close-thick"></v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-app>
-
 </template>
