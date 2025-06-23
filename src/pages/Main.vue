@@ -1,5 +1,6 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
+import { useDisplay } from 'vuetify';
 import { useUserStore } from '../store/user';
 import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
@@ -10,6 +11,9 @@ import { database, ref as firebaseRef, get, set, update, remove } from "../confi
 const userStore = useUserStore();
 const router = useRouter();
 const cookies = useCookies();
+
+const { mdAndDown } = useDisplay();  // md 이하 (xs, sm, md) → 모바일
+const isMobile = mdAndDown;         // 그대로 사용하면 됨
 
 const userInfo = ref({});
 const restaurant = ref([]);
@@ -35,11 +39,19 @@ const appMenu = [
   { title: '로그아웃', action: logout }
 ];
 
-const headers = [
-  { title: '식당', align: 'start', key: 'name', value: 'name' },
-  { title: '방문일', align: 'center', key: 'lastDate', value: 'lastDate' },
-  { title: '전화', align: 'end', sortable: false, key: 'telNo', value: 'telNo' },
-];
+const headers = computed(() => isMobile.value
+  ? [
+    { title: '식당', key: 'name', align: 'start' },
+    { title: '방문일', key: 'lastDate', align: 'center' },
+    { title: '전화', key: 'telNo', align: 'end', sortable: false }
+  ]
+  : [
+    { title: '식당', key: 'name', align: 'start' },
+    { title: '방문일', key: 'lastDate', align: 'center' },
+    { title: '메뉴', key: 'lastMenu', align: 'start' },
+    { title: '전화번호', key: 'telNo', align: 'start', sortable: false }
+  ]
+);
 
 const listHeaders = [
   { title: '방문일', align: 'center', key: 'date', value: 'date' },
@@ -366,7 +378,7 @@ function onClickEditRestaurant() {
   isRestaurantAdd.value = false;
   isMenuPopup.value = false;
   isRestaurantPopup.value = true;
-  
+
 }
 
 const rules = {
@@ -429,14 +441,19 @@ onMounted(async () => {
         <template v-slot:item.lastDate="{ item }">
           <div @click="item.lastDate ? openListPopup(item) : null">
             <span>{{ item.lastDate ? formatKoreanDate(item.lastDate) : '' }}</span><br />
-            <small style="color:grey">{{ item.lastMenu }}</small>
+            <small v-if="isMobile" style="color:grey">{{ item.lastMenu }}</small>
           </div>
         </template>
 
         <template v-slot:item.telNo="{ item }">
-          <v-btn class="pa-0" icon="mdi-phone" size="small" :href="'tel:' + item.telNo" target="_self">
-          </v-btn>
+          <v-btn v-if="isMobile" class="pa-0" icon="mdi-phone" size="small" :href="'tel:' + item.telNo" />
+          <div v-else>
+            <v-icon size="18">mdi-phone</v-icon>
+            <span class="ml-1">{{ item.telNo }}</span>
+          </div>          
         </template>
+
+
       </v-data-table>
     </v-main>
 
@@ -491,7 +508,7 @@ onMounted(async () => {
           <v-text-field v-model="restaurantInfo.name" label="식당명" variant="outlined" :rules="[rules.required]" />
           <v-combobox v-model="restaurantInfo.kind" label="종류" :items="restaurantKind" variant="outlined"></v-combobox>
           <v-text-field v-model="restaurantInfo.telNo" label="전화번호" variant="outlined"></v-text-field>
-          <v-text-field v-model="restaurantInfo.menuUrl" label="메뉴 URL" variant="outlined" class="menu-url-field"/>
+          <v-text-field v-model="restaurantInfo.menuUrl" label="메뉴 URL" variant="outlined" class="menu-url-field" />
         </v-card-text>
         <v-card-actions>
           <v-btn @click="saveRestaurant()" icon="mdi-check-bold"></v-btn>
