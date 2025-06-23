@@ -13,6 +13,7 @@ const cookies = useCookies();
 
 const userInfo = ref({});
 const restaurant = ref([]);
+const restaurantDB = ref({});
 const visitLog = ref([]);
 const isMenuPopup = ref(false);
 const visit = ref({});
@@ -61,12 +62,13 @@ async function selectUser() {
 async function selectRestaurant() {
 
   const dbRef = firebaseRef(database, "lunch-resv/restaurant");
+  restaurant.value = [];
   await get(dbRef)
     .then(snapshot => {
       if (snapshot.exists()) {
-        const data = snapshot.val();
-        Object.keys(data).forEach(r => {
-          restaurant.value.push({...data[r], "id": r});
+        restaurantDB.value = snapshot.val();
+        Object.keys(restaurantDB.value).forEach(r => {
+          restaurant.value.push({...restaurantDB.value[r], "id": r});
         })
       }
     })
