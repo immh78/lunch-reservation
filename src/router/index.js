@@ -1,6 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import { database, ref as firebaseRef, push } from "../config/firebase";
-import { isLoggedIn } from '../config/authGuard';
 import { useUserStore } from '../store/user';
 
 import Main from '../pages/Main.vue';
@@ -34,8 +33,10 @@ const router = createRouter({
 });
 
 router.beforeEach( (to, from, next) => {
+  const userStore = useUserStore();
+  const uid = userStore.user?.uid;
   // 로그인 필요
-  if (to.meta.requiresAuth && !isLoggedIn()) {
+  if (to.meta.requiresAuth && !uid) {
     return next({ path: '/login', query: { redirect: to.fullPath } });
   }
 
@@ -69,7 +70,7 @@ async function logPageVisit(route) {
   const userStore = useUserStore();
   const uid = userStore.user?.uid || 'anonymous';
 
-  console.log("userStore.user", userStore.user)
+  //console.log("userStore.user", userStore.user)
 
   // (4) 로그 객체
   const logEntry = {

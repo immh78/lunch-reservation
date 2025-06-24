@@ -1,10 +1,8 @@
 <script setup>
 import { ref } from 'vue';
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { auth, get, database, ref as firebaseRef } from '../config/firebase';
+import { auth } from '../config/firebase';
 import { useRouter, useRoute } from 'vue-router';
-import { useCookies } from '@vueuse/integrations/useCookies';
-import { useUserStore } from '../store/user';
 
 const email = ref('');
 const password = ref('');
@@ -12,30 +10,10 @@ const showPassword = ref(false);
 const loading = ref(false);
 const route = useRoute();
 const router = useRouter();
-const cookies = useCookies();
-const userStore = useUserStore();
-
 
 async function login() {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value);
-    const user = userCredential.user;
-    const token = await user.getIdToken();
-
-    cookies.set('authToken', token);
-    //console.log(user);
-
-    if (user) {
-      userStore.setUser({
-        email: auth.currentUser.email,
-        name: await selectUserName(auth.currentUser.uid),
-        uid: auth.currentUser.uid
-      });
-    } else {
-      userStore.clearUser();
-    }
-
-    //console.log("userStore.user", userStore.user);
+    await signInWithEmailAndPassword(auth, email.value, password.value);
 
     // 리디렉트 경로 있으면 해당 페이지로, 없으면 홈으로
     const redirectTo = route.query.redirect || '/';
@@ -58,22 +36,6 @@ async function login() {
     }
   }
 };
-
-async function selectUserName(uid) {
-  const dbRef = firebaseRef(database, "user/" + uid);
-  let userInfo = "";
-  await get(dbRef)
-    .then(snapshot => {
-      if (snapshot.exists()) {
-        userInfo = snapshot.val();
-      }
-    })
-    .catch(err => {
-      //console.error("Error fetching data:", err);
-    });
-
-  return userInfo.name;
-}
 
 async function resetPassword() {
   if (!email.value) {

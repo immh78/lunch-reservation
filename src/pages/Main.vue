@@ -5,12 +5,10 @@ import { useUserStore } from '../store/user';
 import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { useRouter } from 'vue-router';
-import { useCookies } from '@vueuse/integrations/useCookies';
 import { database, ref as firebaseRef, get, set, update, remove } from "../config/firebase";
 
 const userStore = useUserStore();
 const router = useRouter();
-const cookies = useCookies();
 
 const { mdAndDown } = useDisplay();  // md 이하 (xs, sm, md) → 모바일
 const isMobile = mdAndDown;         // 그대로 사용하면 됨
@@ -60,11 +58,8 @@ const listHeaders = [
 
 const restaurantKind = ['한식', '중식', '패스트푸드', '일식', '카페', '베이커리'];
 
-
-
 async function logout() {
   await signOut(auth);
-  cookies.remove('authToken');
   userStore.clearUser();
   router.push('/login');
 };
