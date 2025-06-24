@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { auth, get, database, ref as firebaseRef } from '../config/firebase';
 import { useRouter, useRoute } from 'vue-router';
 import { useCookies } from '@vueuse/integrations/useCookies';
@@ -30,7 +30,7 @@ async function login() {
         email: auth.currentUser.email,
         name: await selectUserName(auth.currentUser.uid),
         uid: auth.currentUser.uid
-      });   
+      });
     } else {
       userStore.clearUser();
     }
@@ -75,6 +75,30 @@ async function selectUserName(uid) {
   return userInfo.name;
 }
 
+async function resetPassword() {
+  if (!email.value) {
+    alert('이메일을 입력해주세요.');
+    return;
+  }
+
+  try {
+    await sendPasswordResetEmail(auth, email.value);
+    alert('비밀번호 재설정 이메일이 발송되었습니다.');
+  } catch (error) {
+    console.error('비밀번호 재설정 오류:', error.code);
+    switch (error.code) {
+      case 'auth/user-not-found':
+        alert('등록되지 않은 이메일입니다.');
+        break;
+      case 'auth/invalid-email':
+        alert('유효한 이메일 주소를 입력해주세요.');
+        break;
+      default:
+        alert('비밀번호 재설정에 실패했습니다.');
+    }
+  }
+}
+
 function goToRegister() {
   router.push('/register'); // 회원가입 페이지 경로
 };
@@ -94,6 +118,9 @@ function goToRegister() {
 
         <v-btn :loading="loading" color="primary" class="mt-4" type="submit" block>
           로그인
+        </v-btn>
+        <v-btn variant="text" class="mt-2" block @click="resetPassword">
+          비밀번호를 잊으셨나요?
         </v-btn>
       </v-form>
 
