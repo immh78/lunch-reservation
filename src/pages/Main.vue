@@ -434,13 +434,13 @@ onMounted(async () => {
             @click="choiceMenu(item)"><v-icon>{{ foodImage(item.kind) }}</v-icon> {{ item.name }}</v-btn>
         </template>
         <template v-slot:item.lastDate="{ item }">
-          <div @click="item.lastDate ? openListPopup(item) : null">
+          <div :style="{cursor: item.lastDate ? 'pointer' : ''}" @click="item.lastDate ? openListPopup(item) : null">
             <span>{{ item.lastDate ? formatKoreanDate(item.lastDate) : '' }}</span><br />
             <small v-if="isMobile" style="color:grey">{{ item.lastMenu }}</small>
           </div>
         </template>
         <template v-slot:item.lastMenu="{ item }">
-            <span @click="item.lastDate ? openListPopup(item) : null">{{ item.lastMenu }}</span>
+            <span style="cursor: pointer;" @click="item.lastDate ? openListPopup(item) : null">{{ item.lastMenu }}</span>
         </template>
         <template v-slot:item.telNo="{ item }">
           <v-btn v-if="isMobile" class="pa-0" icon="mdi-phone" size="small" :href="'tel:' + item.telNo" />
@@ -487,7 +487,7 @@ onMounted(async () => {
           </template>
 
           <template v-slot:item.menu="{ item }">
-            <span @click="saveListMenu(item)">{{ item.menu }}</span>
+            <span style="cursor: pointer;" @click="saveListMenu(item)">{{ item.menu }}</span>
           </template>
         </v-data-table>
 
