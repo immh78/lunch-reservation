@@ -61,7 +61,9 @@ const restaurantKind = ['한식', '중식', '패스트푸드', '일식', '카페
 async function logout() {
   await signOut(auth);
   userStore.clearUser();
-  router.push('/login');
+  
+  const fullUrl = window.location.href;
+  window.location.href = `https://immh78.github.io/tools/#/login?redirect=${encodeURIComponent(fullUrl)}`;  
 };
 
 async function selectUser() {
