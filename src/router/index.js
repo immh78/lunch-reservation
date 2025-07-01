@@ -4,6 +4,7 @@ import { useUserStore } from '../store/user';
 
 import Main from '../pages/Main.vue';
 import Reservation from '../pages/Reservation.vue';
+import Login from '../pages/Login.vue';
 
 const routes = [
   {
@@ -17,7 +18,13 @@ const routes = [
     name: 'Reservation',
     component: Reservation,
     meta: { requiresAuth: true, loggable: true }
-  }
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login,
+    meta: { requiresAuth: false, loggable: false }
+  }  
 ];
 
 const router = createRouter({
@@ -28,12 +35,18 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore();
   const uid = userStore.user?.uid;
+  const fullUrl = window.location.href;
+
+  const isTest = fullUrl.includes('localhost');
+
   // 로그인 필요
   if (to.meta.requiresAuth && !uid) {
-    const fullUrl = window.location.href;
-    //return next({ path: '/login', query: { redirect: to.fullPath } });
-    window.location.href = `https://immh78.github.io/tools/#/login?redirect=${encodeURIComponent(fullUrl)}`;
-    return;
+    if (isTest) {
+      return next({ path: '/login', query: { redirect: to.fullPath } });
+    } else {
+      window.location.href = `https://immh78.github.io/tools/#/login?redirect=${encodeURIComponent(fullUrl)}`;
+      return;
+    }
   }
 
   next(); // 통과
