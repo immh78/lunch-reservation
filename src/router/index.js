@@ -10,14 +10,6 @@ const routes = [
     name: 'Main',
     component: Main,
     meta: { requiresAuth: true, loggable: true }
-  },
-  {
-    path: '/login',
-    name: 'LoginRedirect',
-    beforeEnter() {
-      window.location.href = 'https://immh78.github.io/tools/#/login';
-    },
-    meta: { requiresAuth: false, loggable: false }
   }
 ];
 
