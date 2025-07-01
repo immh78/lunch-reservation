@@ -3,12 +3,19 @@ import { database, ref as firebaseRef, push } from "../config/firebase";
 import { useUserStore } from '../store/user';
 
 import Main from '../pages/Main.vue';
+import Reservation from '../pages/Reservation.vue';
 
 const routes = [
   {
     path: '/',
     name: 'Main',
     component: Main,
+    meta: { requiresAuth: true, loggable: true }
+  },
+  {
+    path: '/reservation',
+    name: 'Reservation',
+    component: Reservation,
     meta: { requiresAuth: true, loggable: true }
   }
 ];

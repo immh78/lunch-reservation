@@ -13,15 +13,15 @@ const router = useRouter();
 const { mdAndDown } = useDisplay();  // md 이하 (xs, sm, md) → 모바일
 const isMobile = mdAndDown;         // 그대로 사용하면 됨
 
-const userInfo = ref({});
 const restaurant = ref([]);
-const restaurantDB = ref({});
+const restaurantData = ref({});
 const restaurantInfo = ref({});
-const visitLog = ref([]);
-const isMenuPopup = ref(false);
-const visit = ref({});
+const reservation = ref([]);
+const isResvPopup = ref(false);
+const resv = ref({});
 const blockRestaurant = ref([]);
-const menuPopupRef = ref({});
+const resvPopupRef = ref({});
+const prepayment = ref({});
 
 const isListPopup = ref(false);
 const listPopupTitle = ref('');
@@ -32,10 +32,19 @@ const isLoading = ref(false);
 const isRestaurantPopup = ref(false);
 const isRestaurantAdd = ref(false);
 
+const tab = ref('');
+
 const appMenu = [
   { title: '식당 등록', action: addRestraurant },
-  { title: '포장 예약', action: nextReservation },
+  { title: '점심 선택', action: nextLunch },
   { title: '로그아웃', action: logout }
+];
+
+
+const headerPrepayment = [
+  { title: '날짜', key: 'date' },
+  { title: '금액', key: 'amount' },
+  { title: '', key: 'delete' }
 ];
 
 const headers = computed(() => isMobile.value
@@ -62,28 +71,14 @@ const restaurantKind = ['한식', '중식', '패스트푸드', '일식', '카페
 async function logout() {
   await signOut(auth);
   userStore.clearUser();
-  
+
   const fullUrl = window.location.href;
-  window.location.href = `https://immh78.github.io/tools/#/login?redirect=${encodeURIComponent(fullUrl)}`;  
+  window.location.href = `https://immh78.github.io/tools/#/login?redirect=${encodeURIComponent(fullUrl)}`;
 };
 
-async function selectUser() {
-  const dbRef = firebaseRef(database, "user/" + uid.value);
-  await get(dbRef)
-    .then(snapshot => {
-      if (snapshot.exists()) {
-        userInfo.value = snapshot.val();
-      }
-    })
-    .catch(err => {
-      //console.error("Error fetching data:", err);
-    });
+function nextLunch() {
+  router.push("/");
 }
-
-function nextReservation() {
-  router.push("/reservation");
-}
-
 
 function addRestraurant() {
   restaurantInfo.value = {};
@@ -97,69 +92,24 @@ async function selectRestaurant() {
   await get(dbRef)
     .then(snapshot => {
       if (snapshot.exists()) {
-        restaurantDB.value = snapshot.val();
-        Object.keys(restaurantDB.value).forEach(r => {
-          restaurant.value.push({ ...restaurantDB.value[r], "id": r });
+        restaurantData.value = snapshot.val();
+        Object.keys(restaurantData.value).forEach(r => {          
+          restaurant.value.push({ ...restaurantData.value[r], "id": r });
         })
       }
     })
     .catch(err => {
       console.error("Error fetching data:", err);
     });
-
-  restaurant.value.forEach(r => {
-    const logs = visitLog.value
-      .filter(log => log.restaurantId === r.id)
-      .sort((a, b) => b.date.localeCompare(a.date)); // 최신 순 정렬
-
-    //console.log('logs', r.id, logs);
-
-    const latest = logs[0];
-    if (latest) {
-      r.lastDate = latest.date;
-      r.lastMenu = latest.menu;
-    } else {
-      r.lastDate = null;
-      r.lastMenu = null;
-    }
-  });
-
-
-  // restaurant.value = restaurant.value.sort((a, b) => {
-  //   if (!a.lastDate && !b.lastDate) return 0;           // 둘 다 null
-  //   if (!a.lastDate) return 1;                          // a가 null이면 뒤로
-  //   if (!b.lastDate) return -1;                         // b가 null이면 앞으로
-  //   return a.lastDate.localeCompare(b.lastDate);        // 문자열 날짜 내림차순
-  // });
-
-  restaurant.value = restaurant.value.sort((a, b) => {
-    const isBlockedA = blockRestaurant.value.includes(a.id);
-    const isBlockedB = blockRestaurant.value.includes(b.id);
-
-    // 1. 둘 중 하나라도 block이면 맨 뒤로
-    if (isBlockedA && !isBlockedB) return 1;
-    if (!isBlockedA && isBlockedB) return -1;
-    if (isBlockedA && isBlockedB) return 0;
-
-    // 2. 날짜가 null인 경우 뒤로
-    if (!a.lastDate && !b.lastDate) return 0;
-    if (!a.lastDate) return 1;
-    if (!b.lastDate) return -1;
-
-    // 3. 날짜가 있는 경우 최신순 정렬
-    return a.lastDate.localeCompare(b.lastDate);
-  });
-
-  //console.log('restaurant #3', restaurant.value);
-  //console.log('blockRestaurant', blockRestaurant.value);
 }
 
-async function selectVisitLog() {
-  const dbRef = firebaseRef(database, "lunch-resv/visitLog/" + uid.value);
+async function selectReservation() {
+  const dbRef = firebaseRef(database, "lunch-resv/reservation/" + uid.value);
   await get(dbRef)
     .then(snapshot => {
       if (snapshot.exists()) {
-        visitLog.value = snapshot.val();
+        reservation.value = snapshot.val();
+        console.log(reservation.value)
       }
     })
     .catch(err => {
@@ -218,24 +168,25 @@ function foodImage(s) {
   return icon;
 }
 
-function choiceMenu(item) {
-  visit.value.date = getToday();
-  visit.value.restaurantId = item.id;
-  visit.value.menu = item.lastMenu;
+function onClickRestaurant(item) {
+  console.log("reservation.value", reservation.value)
+  console.log("item", item)
+  resv.value = reservation.value.find(r => r.restaurantId === item.id && !r.isReceipt)
 
-  menuPopupRef.value.isChoice = item.lastDate === getToday();
-  menuPopupRef.value.menuUrl = item.menuUrl;
-  menuPopupRef.value.name = item.name;
+  console.log("resv.value", resv.value)
 
-  isMenuPopup.value = true;
+  resvPopupRef.value.menuUrl = item.menuUrl;
+  resvPopupRef.value.name = item.name;
 
-  //console.log(visit.value);
+  isResvPopup.value = true;
+
+  //console.log(resv.value);
 }
 
 
 function menuList(id) {
   const uniqueMenus = [...new Set(
-    visitLog.value
+    reservation.value
       .filter(item => item.restaurantId === id) // GANG15 필터
       .map(item => item.menu)                         // 메뉴만 추출
   )];
@@ -244,49 +195,49 @@ function menuList(id) {
 }
 
 function saveListMenu(item) {
-  visit.value = item;
-  visit.value.date = getToday();
+  resv.value = item;
+  resv.value.date = getToday();
 
   saveMenu();
   isListPopup.value = false;
 }
 async function saveMenu() {
-  //console.log("menu", visit.value);
+  //console.log("menu", resv.value);
 
-  if (visitLog.value[visitLog.value.length - 1].date === getToday()) {
-    visitLog.value.pop();
+  if (reservation.value[reservation.value.length - 1].date === getToday()) {
+    reservation.value.pop();
   }
 
   const data = {
-    [visitLog.value.length]: visit.value
+    [reservation.value.length]: resv.value
   }
 
   //console.log("data", data);
 
   try {
-    const dbRef = firebaseRef(database, "lunch-resv/visitLog/" + uid.value);
+    const dbRef = firebaseRef(database, "lunch-resv/reservation/" + uid.value);
     await update(dbRef, data); // 데이터를 저장
   } catch (err) {
     console.error("Error saving data:", err);
   }
 
-  await selectVisitLog();
+  await selectReservation();
   await selectRestaurant();
-  isMenuPopup.value = false;
+  isResvPopup.value = false;
 }
 
 async function deleteMenu() {
 
   try {
-    const dbRef = firebaseRef(database, "lunch-resv/visitLog/" + uid.value + "/" + (visitLog.value.length - 1));
+    const dbRef = firebaseRef(database, "lunch-resv/reservation/" + uid.value + "/" + (reservation.value.length - 1));
     await remove(dbRef); // 데이터를 저장
   } catch (err) {
     console.error("Error saving data:", err);
   }
 
-  await selectVisitLog();
+  await selectReservation();
   await selectRestaurant();
-  isMenuPopup.value = false;
+  isResvPopup.value = false;
 }
 
 async function saveRestaurant() {
@@ -311,16 +262,30 @@ async function saveRestaurant() {
 async function selectData() {
   isLoading.value = true;          // <-- 로딩 시작
   try {
-    await selectUser();
-    await selectVisitLog();
+    await selectReservation();
     await selectRestaurant();
+    await selectPrepayment();
   } finally {
     isLoading.value = false;       // <-- 로딩 종료
   }
 }
 
+async function selectPrepayment() {
+  const dbRef = firebaseRef(database, "lunch-resv/prepayment/" + uid.value);
+  get(dbRef)
+    .then(snapshot => {
+      if (snapshot.exists()) {
+        prepayment.value = snapshot.val();
+      }
+    })
+    .catch(err => {
+      console.error("Error fetching data:", err);
+    });
+}
+
+
 async function selectBlockRestaurant() {
-  const dbRef = firebaseRef(database, "lunch-resv/blockRestaurant/lunch/" + uid.value);
+  const dbRef = firebaseRef(database, "lunch-resv/blockRestaurant/resv/" + uid.value);
   get(dbRef)
     .then(snapshot => {
       if (snapshot.exists()) {
@@ -335,15 +300,15 @@ async function selectBlockRestaurant() {
 }
 
 function addBlockRestaurant() {
-  if (!blockRestaurant.value.includes(visit.value.restaurantId)) {
-    blockRestaurant.value.push(visit.value.restaurantId);
+  if (!blockRestaurant.value.includes(resv.value.restaurantId)) {
+    blockRestaurant.value.push(resv.value.restaurantId);
   }
 
   saveBlockRestaurant()
 }
 
 function removeBlockRestaurant() {
-  const index = blockRestaurant.value.indexOf(visit.value.restaurantId);
+  const index = blockRestaurant.value.indexOf(resv.value.restaurantId);
   if (index > -1) {
     blockRestaurant.value.splice(index, 1);  // 배열에서 제거
   }
@@ -353,7 +318,7 @@ function removeBlockRestaurant() {
 
 async function saveBlockRestaurant() {
   try {
-    const dbRef = firebaseRef(database, "lunch-resv/blockRestaurant/lunch/" + uid.value);
+    const dbRef = firebaseRef(database, "lunch-resv/blockRestaurant/resv/" + uid.value);
     await set(dbRef, blockRestaurant.value); // 데이터를 저장
   } catch (err) {
     console.error("Error saving data:", err);
@@ -365,7 +330,7 @@ async function saveBlockRestaurant() {
 function openListPopup(item) {
   listPopupTitle.value = item.name;
 
-  listTable.value = visitLog.value.filter(log => log.restaurantId === item.id)
+  listTable.value = reservation.value.filter(log => log.restaurantId === item.id)
     .sort((a, b) => b.date.localeCompare(a.date)); // 최신 순 정렬
 
   console.log(listTable.value);
@@ -373,12 +338,19 @@ function openListPopup(item) {
   isListPopup.value = true;
 }
 
+function onClickAddPrepay() {
+  console.log(resv.value.restaurantId)
+  prepayment.value[resv.value.restaurantId].push({ "amount": 0,"date": "20250703"});
+  console.log(prepayment.value[resv.value.restaurantId])
+}
+
+
 function onClickEditRestaurant() {
-  restaurantInfo.value = restaurantDB.value[visit.value.restaurantId];
-  restaurantInfo.value.id = visit.value.restaurantId;
+  restaurantInfo.value = restaurantData.value[resv.value.restaurantId];
+  restaurantInfo.value.id = resv.value.restaurantId;
 
   isRestaurantAdd.value = false;
-  isMenuPopup.value = false;
+  isResvPopup.value = false;
   isRestaurantPopup.value = true;
 
 }
@@ -429,7 +401,7 @@ onMounted(async () => {
           <v-icon v-else size="24" @click="selectData()">mdi-food
           </v-icon>
         </span>
-        식권대장 점심
+        포장 예약
       </v-app-bar-title>
     </v-app-bar>
     <v-main>
@@ -438,49 +410,71 @@ onMounted(async () => {
         <template v-slot:item.name="{ item }">
           <v-btn :variant="item.lastDate === getToday() ? 'flat' : 'tonal'"
             :color="blockRestaurant.includes(item.id) ? 'grey-darken-3' : 'primary'" class="px-1"
-            @click="choiceMenu(item)"><v-icon>{{ foodImage(item.kind) }}</v-icon> {{ item.name }}</v-btn>
+            @click="onClickRestaurant(item)"><v-icon>{{ foodImage(item.kind) }}</v-icon> {{ item.name }}</v-btn>
         </template>
         <template v-slot:item.lastDate="{ item }">
-          <div :style="{cursor: item.lastDate ? 'pointer' : ''}" @click="item.lastDate ? openListPopup(item) : null">
+          <div :style="{ cursor: item.lastDate ? 'pointer' : '' }" @click="item.lastDate ? openListPopup(item) : null">
             <span>{{ item.lastDate ? formatKoreanDate(item.lastDate) : '' }}</span><br />
             <small v-if="isMobile" style="color:grey">{{ item.lastMenu }}</small>
           </div>
         </template>
         <template v-slot:item.lastMenu="{ item }">
-            <span style="cursor: pointer;" @click="item.lastDate ? openListPopup(item) : null">{{ item.lastMenu }}</span>
+          <span style="cursor: pointer;" @click="item.lastDate ? openListPopup(item) : null">{{ item.lastMenu }}</span>
         </template>
         <template v-slot:item.telNo="{ item }">
           <v-btn v-if="isMobile" class="pa-0" icon="mdi-phone" size="small" :href="'tel:' + item.telNo" />
           <div v-else>
             <v-icon size="18">mdi-phone</v-icon>
             <span class="ml-1">{{ item.telNo }}</span>
-          </div>          
+          </div>
         </template>
 
 
       </v-data-table>
     </v-main>
 
-    <v-dialog v-model="isMenuPopup" max-width="600px">
-      <v-card>
-        <v-card-title class="d-flex align-center">{{ menuPopupRef.name }}
+    <v-dialog v-model="isResvPopup" max-width="600px" persistent>
+      <v-card style="height: 600px; display: flex; flex-direction: column;">
+        <v-card-title class="d-flex align-center">{{ resvPopupRef.name }}
           <v-icon class="ml-1" size="18px" @click="onClickEditRestaurant()">mdi-pencil</v-icon>
           <v-spacer></v-spacer>
-          <v-btn variant="text" :href="menuPopupRef.menuUrl" target="_blank" rel="noopener">
+          <v-btn variant="text" :href="resvPopupRef.menuUrl" target="_blank" rel="noopener">
             <v-icon>mdi-feature-search-outline</v-icon>
           </v-btn>
         </v-card-title>
-        <v-card-text>
-          <v-combobox v-model="visit.menu" label="메뉴" :items="menuList(visit.restaurantId)"
-            variant="outlined"></v-combobox>
-        </v-card-text>
+        <v-tabs v-model="tab" align-tabs="center" color="deep-purple-accent-4">
+          <v-tab value="menu">메뉴</v-tab>
+          <v-tab value="prepayment">선지불</v-tab>
+        </v-tabs>
+        <v-tabs-window v-model="tab">
+          <v-tabs-window-item value="menu">
+
+            <v-card-text style="height: 320px; overflow-y: auto;">
+              <v-text-field v-model="resv.menu" label="메뉴" variant="outlined" />
+              <v-text-field v-model="resv.cost" label="가격" type="number" variant="outlined" />
+              <v-text-field v-model="resv.resvDate" label="예약일" variant="outlined" />
+            </v-card-text>
+          </v-tabs-window-item>
+          <v-tabs-window-item value="prepayment">
+            <v-card-text style="height: 320px; overflow-y: auto;">
+              <v-data-table :headers="headerPrepayment" :items="prepayment[resv.restaurantId]" hide-default-footer
+                items-per-page="-1" :show-items-per-page="false">
+                <template #header.delete>
+                  <v-btn size="small" @click="onClickAddPrepay()">추가</v-btn>
+                </template>
+                <template #item.delete="{ item }">
+                  <v-btn size="small">del</v-btn>
+                </template>
+              </v-data-table>
+            </v-card-text>
+          </v-tabs-window-item>
+        </v-tabs-window>
         <v-card-actions>
-          <v-btn icon="mdi-cancel" :color="blockRestaurant.includes(visit.restaurantId) ? 'red' : 'black'"
-            @click="blockRestaurant.includes(visit.restaurantId) ? removeBlockRestaurant() : addBlockRestaurant()"></v-btn>
           <v-spacer></v-spacer>
-          <v-btn @click="saveMenu()" icon="mdi-check-bold"></v-btn>
-          <v-btn @click="deleteMenu()" :disabled="!menuPopupRef.isChoice" icon="mdi-delete"></v-btn>
-          <v-btn @click="isMenuPopup = false" icon="mdi-close-thick"></v-btn>
+          <v-btn @click="saveMenu()" icon="mdi-package-variant-closed-check" variant="text"></v-btn>
+          <v-btn @click="saveMenu()" icon="mdi-content-save" variant="text"></v-btn>
+          <v-btn @click="deleteMenu()" :disabled="!resvPopupRef.isChoice" icon="mdi-delete" variant="text"></v-btn>
+          <v-btn @click="isResvPopup = false" icon="mdi-close-thick"></v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
