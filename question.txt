@@ -1,10 +1,68 @@
-files이 아니라 "예약 내용입니다."라는 내용을 공유하려면?
+선지불tab에 v-data-table내 컬럼의 여백을 최소로 조정
 
-if (navigator.share) {
-                await navigator.share({
-                    title: '포장예약메뉴 및 선결제 내역',
-                    files: [new File([await (await fetch(image)).blob()], 'table.png', { type: 'image/png' })],
-                });
-            } else {
-                alert('공유 API를 지원하지 않는 브라우저입니다.');
-            }
+const headerPrepayment = [
+  { title: '날짜', key: 'date', width: 160 },
+  { title: '금액', key: 'amount' },
+  { title: '', key: 'delete', width: 8 }
+];
+
+    <v-dialog v-model="isResvPopup" max-width="600px" persistent>
+      <v-card style="height: 600px; display: flex; flex-direction: column;">
+        <v-card-title class="d-flex align-center">{{ resvPopupRef.name }}
+          <v-icon class="ml-1" size="18px" @click="onClickEditRestaurant()">mdi-pencil</v-icon>
+          <v-spacer></v-spacer>
+          <v-btn variant="text" :href="resvPopupRef.menuUrl" target="_blank" rel="noopener">
+            <v-icon>mdi-feature-search-outline</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-tabs v-model="resvTab" align-tabs="center" color="deep-purple-accent-4">
+          <v-tab value="menu">메뉴</v-tab>
+          <v-tab value="prepayment">선지불</v-tab>
+        </v-tabs>
+        <v-tabs-window v-model="resvTab">
+          <v-tabs-window-item value="menu">
+            <v-card-text style="height: 320px; overflow-y: auto;">
+              <v-text-field v-model="resvPopupData.menu" label="메뉴" variant="outlined" />
+              <v-row>
+                <v-col col="6"><v-text-field v-model="resvPopupData.cost" label="가격" type="number"
+                    variant="outlined" /></v-col>
+                <v-col col="6">
+                  <v-text-field readonly label="선지불" variant="outlined"
+                    :model-value="prepayPopupData.reduce((sum, item) => sum + Number(item.amount), 0)" />
+                </v-col>
+              </v-row>
+              <v-text-field v-model="resvPopupData.resvDate" label="예약일" type="date" variant="outlined" />
+            </v-card-text>
+          </v-tabs-window-item>
+          <v-tabs-window-item value="prepayment">
+            <v-card-text style="height: 320px; overflow-y: auto;">
+              <v-data-table dense :headers="headerPrepayment" :items="prepayPopupData" hide-default-footer
+                items-per-page="-1" :show-items-per-page="false">
+                <template #header.delete>
+                  <v-btn icon="mdi-plus" variant="text" @click="onClickAddPrepay()" />
+                </template>
+                <template #item.date="{ item }">
+                  <v-text-field v-model="item.date" variant="plain" type="date" />
+                </template>
+                <template #item.amount="{ item }">
+                  <v-text-field v-model="item.amount" variant="plain" type="number" />
+                </template>
+                <template #item.delete="{ item, index }">
+                  <v-btn icon="mdi-delete" variant="text" @click="onClickDelPrepay(index)" />
+                </template>
+              </v-data-table>
+            </v-card-text>
+          </v-tabs-window-item>
+        </v-tabs-window>
+        <v-card-actions>
+          <v-btn @click="shareResv()" icon="mdi-share-variant" variant="text"></v-btn>
+          <v-spacer></v-spacer>
+          <v-btn @click="saveResv(true)" :disabled="resvTab !== 'menu'" icon="mdi-package-variant-closed-check"
+            variant="text"></v-btn>
+          <v-btn @click="saveResv(false)" icon="mdi-content-save" variant="text"></v-btn>
+          <v-btn @click="deleteResv()" :disabled="resvPopupData.key === -1 || resvTab !== 'menu'" icon="mdi-delete"
+            variant="text"></v-btn>
+          <v-btn @click="isResvPopup = false" icon="mdi-close-thick"></v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>

@@ -45,7 +45,7 @@ const appMenu = [
 const headerPrepayment = [
   { title: '날짜', key: 'date', width: 160 },
   { title: '금액', key: 'amount' },
-  { title: '', key: 'delete', width: 8 }
+  { title: '', key: 'delete', align: 'end', width: 8 }
 ];
 
 const headers = [
@@ -647,8 +647,8 @@ onMounted(async () => {
             </v-card-text>
           </v-tabs-window-item>
           <v-tabs-window-item value="prepayment">
-            <v-card-text style="height: 320px; overflow-y: auto;">
-              <v-data-table dense :headers="headerPrepayment" :items="prepayPopupData" hide-default-footer
+            <v-card-text class='mx-1 px-0' style="height: 320px; overflow-y: auto;">
+              <v-data-table :headers="headerPrepayment" :items="prepayPopupData" hide-default-footer
                 items-per-page="-1" :show-items-per-page="false">
                 <template #header.delete>
                   <v-btn icon="mdi-plus" variant="text" @click="onClickAddPrepay()" />
@@ -660,7 +660,7 @@ onMounted(async () => {
                   <v-text-field v-model="item.amount" variant="plain" type="number" />
                 </template>
                 <template #item.delete="{ item, index }">
-                  <v-btn icon="mdi-delete" variant="text" @click="onClickDelPrepay(index)" />
+                  <v-btn  icon="mdi-delete" variant="text" @click="onClickDelPrepay(index)" />
                 </template>
               </v-data-table>
             </v-card-text>
@@ -725,4 +725,5 @@ onMounted(async () => {
   white-space: nowrap;
   overflow-x: auto;
 }
+
 </style>
