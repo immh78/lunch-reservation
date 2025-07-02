@@ -26,7 +26,8 @@ const prepayPopupData = ref([]);
 
 const isListPopup = ref(false);
 const listPopupTitle = ref('');
-const listTable = ref([]);
+const listPopupSelectable = ref(false);
+const listPopupData = ref([]);
 const uid = ref("");
 
 const isLoading = ref(false);
@@ -55,7 +56,7 @@ const headers = [
 ];
 
 const listHeaders = [
-  { title: '방문일', align: 'center', key: 'date', value: 'date' },
+  { title: '예약일', align: 'center', key: 'date', value: 'date' },
   { title: '메뉴', align: 'start', key: 'menu', value: 'menu' },
 ];
 
@@ -278,10 +279,12 @@ function getNewKey(arr) {
 function onClickRestaurant(item) {
   console.log("popup", item);
 
+  item.isReceipt
+
   resvPopupData.value = {
     "cost": item.cost,
     "isReceipt": false,
-    "key": item.resvKey,
+    "key": item.isReceipt ? -1 : item.resvKey,
     "menu": item.resvMenu,
     "restaurantId": item.id,
     "resvDate": item.isReceipt ? getNextFridayFormatted() : getFormatedDate(item.resvDate)
@@ -335,12 +338,12 @@ function menuList(id) {
   return uniqueMenus;
 }
 
-function saveListMenu(item) {
+function onClickListMenu(item) {
   resvPopupData.value = item;
-  resvPopupData.value.date = getToday();
+  resvPopupData.value.resvDate = getNextFridayFormatted();
 
-  saveResv();
   isListPopup.value = false;
+  isResvPopup.value = true;
 }
 
 async function deleteResv() {
@@ -506,11 +509,12 @@ async function saveBlockRestaurant() {
 
 function openListPopup(item) {
   listPopupTitle.value = item.name;
+  listPopupSelectable.value = item.isReceipt;
 
-  listTable.value = reservation.value.filter(log => log.restaurantId === item.id)
+  listPopupData.value = reservation.value.filter(log => log.restaurantId === item.id)
     .sort((a, b) => b.date.localeCompare(a.date)); // 최신 순 정렬
 
-  console.log(listTable.value);
+  console.log("listPopupData", listPopupData.value);
 
   isListPopup.value = true;
 }
@@ -596,14 +600,10 @@ onMounted(async () => {
             :color="blockRestaurant.includes(item.id) ? 'grey-darken-3' : 'primary'" class="px-1"
             @click="onClickRestaurant(item)"><v-icon>{{ foodImage(item.kind) }}</v-icon> {{ item.name }}</v-btn>
         </template>
-        <template v-slot:item.lastDate="{ item }">
-          <div :style="{ cursor: item.lastDate ? 'pointer' : '' }" @click="item.lastDate ? openListPopup(item) : null">
-            <span>{{ item.lastDate ? formatKoreanDate(item.lastDate) : '' }}</span><br />
-            <small v-if="isMobile" style="color:grey">{{ item.lastMenu }}</small>
+        <template v-slot:item.resvMenu="{ item }">
+          <div :style="{ cursor: item.resvMenu ? 'pointer' : '' }" @click="item.resvMenu ? openListPopup(item) : null">
+            <span :style="{color: item.isReceipt ? 'silver' : item.prepay >= item.cost ? 'black' : 'red'}">{{ item.resvMenu }}</span>
           </div>
-        </template>
-        <template v-slot:item.lastMenu="{ item }">
-          <span style="cursor: pointer;" @click="item.lastDate ? openListPopup(item) : null">{{ item.lastMenu }}</span>
         </template>
         <template v-slot:item.telNo="{ item }">
           <v-btn v-if="isMobile" class="pa-0" icon="mdi-phone" size="small" :href="'tel:' + item.telNo" />
@@ -681,14 +681,14 @@ onMounted(async () => {
 
     <v-dialog v-model="isListPopup" max-width="600px">
       <v-card :title="listPopupTitle">
-        <v-data-table :headers="listHeaders" :items="listTable" no-data-text="조회중입니다." loading-text="조회중입니다."
+        <v-data-table :headers="listHeaders" :items="listPopupData" no-data-text="조회중입니다." loading-text="조회중입니다."
           hide-default-footer items-per-page="-1" :show-items-per-page="false">
           <template v-slot:item.date="{ item }">
-            <span>{{ formatKoreanDate(item.date) }}</span>
+            <span>{{ formatKoreanDate(getFormatedDate(item.resvDate)) }}</span>
           </template>
 
           <template v-slot:item.menu="{ item }">
-            <span style="cursor: pointer;" @click="saveListMenu(item)">{{ item.menu }}</span>
+            <span :style="{cursor: listPopupSelectable ? 'pointer' : ''}" @click="listPopupSelectable ? onClickListMenu(item) : null">{{ item.menu }}</span>
           </template>
         </v-data-table>
         <v-card-actions>
