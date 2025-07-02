@@ -6,34 +6,13 @@ import { VitePWA } from 'vite-plugin-pwa'
 // 현재 NODE_ENV에 따라 올바른 .env 파일 로드
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
-
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [vue(),
   VitePWA({
     registerType: 'autoUpdate',
-    manifest: {
-      "name": "식권대장 점심",
-      "short_name": "식권대장 점심",
-      "start_url": "/lunch-reservation/",
-      "display": "standalone",
-      "background_color": "#ffffff",
-      "theme_color": "#000000",
-      "icons": [
-        {
-          "src": "/lunch-reservation/rice.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        },
-        {
-          "src": "/lunch-reservation/rice.png",
-          "sizes": "512x512",
-          "type": "image/png"
-        }
-      ]
-    }
+    manifest: '/lunch-reservation/manifests/manifest.json',  // 기본 manifest 파일      
   }),
-
 
   ],
   base: "/lunch-reservation/",

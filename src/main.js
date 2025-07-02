@@ -1,5 +1,5 @@
 // main.js
-import { createApp } from 'vue';
+import { createApp, watch } from 'vue';
 import App from './App.vue';
 import router from './router';
 
@@ -22,6 +22,35 @@ import persistedState from 'pinia-plugin-persistedstate';
 const vuetify = createVuetify({ components, directives });
 const pinia = createPinia();
 pinia.use(persistedState); 
+
+router.isReady().then(() => {
+    watch(
+        () => router.currentRoute.value.path,
+        (newPath) => {
+            const manifest = document.querySelector('link[rel="manifest"]')
+            if (!manifest) return
+
+            const pages= [
+                'reservation'
+            ];
+
+            manifest.href = "";
+
+            for (const page of pages) {
+                if (newPath.includes(`/${page}`)) {
+                    manifest.href = `/lunch-reservation/manifests/manifest-${page}.json?v=` + Date.now();
+                    break;
+                }
+            }
+
+            if (manifest.href === "") {
+                manifest.href = '/lunch-reservation/manifests/manifest.json?v=' + Date.now();
+            }
+
+        },
+        { immediate: true }
+    )
+})
 
 const app = createApp(App);
 app.use(vuetify).use(router).use(pinia);
