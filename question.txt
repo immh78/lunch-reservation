@@ -1,19 +1,250 @@
-Web App의 로그인 기능을 개발
+restaurant.value에 prepayment.value.[restaurantId].amount의 합계 컬럼을 추가.
 
-사용기술
- - 권한체크 api : Firebase Authentication
- - vue.js composition api, pinia, 쿠기 관리
 
- 기능내용
- - main page에 접속시 쿠키에 로그인 정보가 없으면 로그인 페이지로 이동
- - 로그인시 pinia로 권한정보 관리
- - 메인 화면에는 접속자의 정보를 표기(email등)
- - pinia persistedState 적용
- - googleProvider, signInWithRedirect, getRedirectResult 사용
- - base url : /lunch-reservation
- 
-수정(작성)해야할 소스
- - /src/pages/Login.vue : 로그인 페이지
- - /src/pages/Main.vue : 메인 페이지
- - /src/router/index.js : Route 설정 js
- - /src/config/firebase.js : firebase 설정 js
+restaurant.value = [
+    {
+        "kind": "한식",
+        "menuUrl": "https://map.naver.com/p/entry/place/1539348093?lng=128.626872&lat=34.8753503&placePath=/menu?from=map&fromPanelNum=1&additionalHeight=76&timestamp=202507020745&locale=ko&svcName=map_pcv5&fromPanelNum=1&additionalHeight=76&timestamp=202507020745&locale=ko&svcName=map_pcv5&entry=plt&searchType=place&c=15.00,0,0,0,dh",
+        "name": "생생게장백반",
+        "telNo": "0507-1411-6617",
+        "id": "SENGSENG",
+        "resvMenu": "양념게장(대)",
+        "resvDate": "20250704",
+        "cost": 40000,
+        "isReceipt": false
+    },
+    {
+        "kind": "패스트푸드",
+        "menuUrl": "https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20210629_182%2F1624972759617sLDL6_JPEG%2FS-9T7vSphdDbUeQkLN4LUrkZ.jpg",
+        "name": "오거리김밥",
+        "telNo": "055-635-0020",
+        "id": "5STREET",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true
+    },
+    {
+        "kind": "중식",
+        "menuUrl": "https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyNTAxMTRfMTI4%2FMDAxNzM2ODUxMTI3MDY3.FMYO6xl-7GVAU8ycEy3d1HkwZyykcbu3fVYwAyHtdAEg.cdDboL8nDSpC1Sq5PRlHNcTeBBpmlVdTHRwjFttFqrYg.JPEG%2FIMG_0380.jpg",
+        "name": "아서원",
+        "telNo": "055-638-1215",
+        "id": "ASEONE",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true
+    },
+    {
+        "kind": "한식",
+        "menuUrl": "https://www.bonif.co.kr/brand/menu?brdCd=BF102",
+        "name": "본죽",
+        "telNo": "055-635-6288",
+        "id": "BON",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true
+    },
+    {
+        "kind": "한식",
+        "menuUrl": "https://search.pstatic.net/common/?src=https%3A%2F%2Fpup-review-phinf.pstatic.net%2FMjAyNTAxMDlfMTEg%2FMDAxNzM2NDAxNTA0NjUw.-sTi8d3Vufop5bxtv_3Av_na1nGClJjJrN2dBrGjn58g.1F7-2oKqW2YnVzy60py1TCYDFfl5nEFuW7AkWcAec8kg.JPEG%2F1000037219.jpg.jpg%3Ftype%3Dw1500_60_sharpen",
+        "name": "청진동 감자탕",
+        "telNo": "055-633-0399",
+        "id": "CHUNGGAMJA",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true
+    },
+    {
+        "kind": "한식",
+        "menuUrl": "https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20200411_99%2F1586565921544x8gle_JPEG%2FHLD0QwvYEqBdziQY8-6nXRe3.jpg",
+        "name": "돈돈구이",
+        "telNo": "055-636-1595",
+        "id": "DONDON",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true
+    },
+    {
+        "kind": "패스트푸드",
+        "menuUrl": "https://map.naver.com/p/entry/place/36331898?lng=128.6164715&lat=34.890759&placePath=/information?from=map&fromPanelNum=1&additionalHeight=76&timestamp=202506041050&locale=ko&svcName=map_pcv5&entry=plt&searchType=place&c=15.00,0,0,0,dh",
+        "name": "플라잉볼",
+        "telNo": "0507-1453-0617",
+        "id": "FLYBALL",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true
+    },
+    {
+        "kind": "한식",
+        "menuUrl": "https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20200717_121%2F1594983573796yBiDI_JPEG%2FNYGDpOkMV3nm5yrZthS7SBn7.jpg",
+        "name": "강원오식당",
+        "telNo": "055-632-2786",
+        "id": "GANG1O",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true
+    },
+    {
+        "kind": "한식",
+        "menuUrl": "https://m.blog.naver.com/soowon0824/223342870180?view=img_6",
+        "name": "가야밀면돈가스",
+        "telNo": "055-633-3457",
+        "id": "GAYA",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true
+    },
+    {
+        "kind": "패스트푸드",
+        "menuUrl": "https://map.naver.com/p/entry/place/1360627823?c=15.00,0,0,0,dh&placePath=/menu",
+        "name": "죠스떡볶이",
+        "telNo": "055-638-1995",
+        "id": "JOSU",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true
+    },
+    {
+        "kind": "한식",
+        "menuUrl": "https://map.naver.com/p/search/%EC%9E%A5%ED%8F%89%20%EC%99%95%EA%B1%B4/place/15561154?c=15.00,0,0,0,dh&isCorrectAnswer=true&placePath=/menu?from=map&fromPanelNum=1&additionalHeight=76&timestamp=202507020928&locale=ko&svcName=map_pcv5&searchText=%EC%9E%A5%ED%8F%89%20%EC%99%95%EA%B1%B4&fromPanelNum=1&additionalHeight=76&timestamp=202507020928&locale=ko&svcName=map_pcv5&searchText=%EC%9E%A5%ED%8F%89%20%EC%99%95%EA%B1%B4",
+        "name": "왕건",
+        "telNo": "055-636-8748",
+        "id": "KINGGUN",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true
+    },
+    {
+        "kind": "패스트푸드",
+        "menuUrl": "https://map.naver.com/p/entry/place/1885135641?lng=128.6164715&lat=34.8907589&placePath=/menu?from=map&fromPanelNum=1&additionalHeight=76&timestamp=202506041049&locale=ko&svcName=map_pcv5&entry=plt&searchType=place&c=15.00,0,0,0,dh",
+        "name": "쿠마키친",
+        "telNo": "0507-1343-0630",
+        "id": "KOOMA",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true
+    },
+    {
+        "kind": "패스트푸드",
+        "menuUrl": "https://www.mcdonalds.co.kr/kor/menu/list.do",
+        "name": "맥도날드",
+        "telNo": "055-950-2300",
+        "id": "MACDONALD",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true
+    },
+    {
+        "kind": "한식",
+        "menuUrl": "https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20230204_81%2F16755102834251qlO7_JPEG%2F4BB97BAB-279C-49E8-BED7-FB7D11C045E2.jpeg",
+        "name": "옛날집",
+        "telNo": "055-637-0915",
+        "id": "OLDHOUSE",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true
+    },
+    {
+        "kind": "베이커리",
+        "menuUrl": "https://www.paris.co.kr/products/",
+        "name": "파리바게트(장평)",
+        "telNo": "0507-2093-6154",
+        "id": "PARIS",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true
+    },
+    {
+        "kind": "중식",
+        "menuUrl": "https://m.place.naver.com/restaurant/1381313640/menu/list?entry=plt",
+        "name": "포비엔",
+        "telNo": "0507-1369-0686",
+        "id": "PHAOBIEN",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true
+    },
+    {
+        "kind": "한식",
+        "menuUrl": "https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20240902_183%2F1725239971747XJuoV_JPEG%2F1725239943242.jpg",
+        "name": "토담추어탕",
+        "telNo": "055-633-8858",
+        "id": "TODAM",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true
+    },
+    {
+        "kind": "한식",
+        "menuUrl": "https://postfiles.pstatic.net/MjAyNDA4MTlfMTUy/MDAxNzI0MDUwNDc1Mzc4.TIlM6JffeMLtTHjSTPhQr9YySJgG2K1XgJJMujBax_Eg.lKs52xb1hQnB1z6JJJ8u5g8I8E6E-NiyeGiIP64E3tcg.JPEG/20240819%EF%BC%BF121118.jpg?type=w3840",
+        "name": "예감",
+        "telNo": "055-638-3976",
+        "id": "YAGAM",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true
+    }
+]
+
+prepayment.value = {
+    "SENGSENG": [
+        {
+            "amount": 15000,
+            "date": "20250701"
+        },
+        {
+            "amount": 15000,
+            "date": "20250702"
+        }
+    ]
+}
+
+데이터 복사 로직
+Object.keys(restaurantData.value).forEach(r => {
+          if (!blockRestaurant.value.includes(r)) {
+            // 해당 ID의 모든 예약 가져오기
+            const resvs = reservation.value.filter(resv => resv.restaurantId === r);
+
+            // 정렬: 1순위 isReceipt === false 먼저, 2순위 최신 resvDate 내림차순
+            const sorted = resvs.sort((a, b) => {
+              if (a.isReceipt !== b.isReceipt) {
+                return a.isReceipt ? 1 : -1; // false 먼저
+              }
+              return b.resvDate.localeCompare(a.resvDate); // 최신 날짜 우선
+            });
+
+            const selected = sorted[0]; // 최우선 예약 선택
+
+            restaurant.value.push({
+              ...restaurantData.value[r],
+              id: r,
+              ...(selected ? {
+                resvMenu: selected.menu,
+                resvDate: selected.resvDate,
+                cost: selected.cost,
+                isReceipt: selected.isReceipt
+              } : {
+                resvMenu: '',
+                resvDate: '',
+                cost: 0,
+                isReceipt: true
+              })
+            });
+          }
+        });

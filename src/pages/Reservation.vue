@@ -47,19 +47,11 @@ const headerPrepayment = [
   { title: '', key: 'delete' }
 ];
 
-const headers = computed(() => isMobile.value
-  ? [
-    { title: '식당', key: 'name', align: 'start' },
-    { title: '방문일', key: 'lastDate', align: 'center' },
-    { title: '전화', key: 'telNo', align: 'end', sortable: false }
-  ]
-  : [
-    { title: '식당', key: 'name', align: 'start' },
-    { title: '방문일', key: 'lastDate', align: 'center' },
-    { title: '메뉴', key: 'lastMenu', align: 'start' },
-    { title: '전화번호', key: 'telNo', align: 'start', sortable: false }
-  ]
-);
+const headers = [
+  { title: '식당', key: 'name', align: 'start' },
+  { title: '예약메뉴', key: 'resvMenu', align: 'start' },
+  { title: '전화', key: 'telNo', align: 'end', sortable: false }
+];
 
 const listHeaders = [
   { title: '방문일', align: 'center', key: 'date', value: 'date' },
@@ -94,8 +86,58 @@ async function selectRestaurant() {
       if (snapshot.exists()) {
         restaurantData.value = snapshot.val();
         Object.keys(restaurantData.value).forEach(r => {
-          restaurant.value.push({ ...restaurantData.value[r], "id": r });
-        })
+          if (!blockRestaurant.value.includes(r)) {
+            // 해당 ID의 모든 예약 가져오기
+            const resvs = reservation.value.filter(resv => resv.restaurantId === r);
+
+            // 정렬: 1순위 isReceipt === false 먼저, 2순위 최신 resvDate 내림차순
+            const sorted = resvs.sort((a, b) => {
+              if (a.isReceipt !== b.isReceipt) {
+                return a.isReceipt ? 1 : -1; // false 먼저
+              }
+              return b.resvDate.localeCompare(a.resvDate); // 최신 날짜 우선
+            });
+
+            const selected = sorted[0]; // 최우선 예약 선택
+
+            // 해당 식당의 선결제 내역 합계 계산
+            const prepayments = prepayment.value[r] || [];
+            const prepay = prepayments.reduce((sum, p) => sum + p.amount, 0);
+
+            restaurant.value.push({
+              ...restaurantData.value[r],
+              id: r,
+              ...(selected ? {
+                resvMenu: selected.menu,
+                resvDate: selected.resvDate,
+                cost: selected.cost,
+                isReceipt: selected.isReceipt
+              } : {
+                resvMenu: '',
+                resvDate: '',
+                cost: 0,
+                isReceipt: true
+              }),
+              prepay
+            });
+          }
+        });
+
+        restaurant.value.sort((a, b) => {
+          const aDate = a.resvDate;
+          const bDate = b.resvDate;
+
+          // a가 비어있고 b는 값이 있으면 b가 앞으로
+          if (!aDate && bDate) return 1;
+          if (aDate && !bDate) return -1;
+
+          // 둘 다 비었으면 순서 유지
+          if (!aDate && !bDate) return 0;
+
+          // 둘 다 값이 있으면 내림차순 (역순)
+          return bDate.localeCompare(aDate);
+        });
+
       }
     })
     .catch(err => {
@@ -109,7 +151,7 @@ async function selectReservation() {
     .then(snapshot => {
       if (snapshot.exists()) {
         reservation.value = snapshot.val();
-        console.log(reservation.value)
+        //console.log(reservation.value)
       }
     })
     .catch(err => {
@@ -173,22 +215,15 @@ function getFormatedDate(raw) {
 }
 
 function onClickRestaurant(item) {
-  resv.value = {...reservation.value.find(r => r.restaurantId === item.id && !r.isReceipt)};
+  resv.value = {
+    "cost": item.cost,
+    "isReceipt": item.isReceipt,
+    "menu": item.resvMenu,
+    "restaurantId": item.id,
+    "resvDate": getFormatedDate(item.resvDate)
+  }
 
   console.log("resv.value", resv.value);
-  console.log("reservation.value", reservation.value);
-
-  if (Object.keys(resv.value).length > 0) {
-    resv.value.resvDate = getFormatedDate(resv.value.resvDate);
-  } else {
-    resv.value = {
-      "cost": 0,
-      "isReceipt": false,
-      "menu": "",
-      "restaurantId": item.id,
-      "resvDate": "2025-07-04"
-    }
-  }
 
   resvPopupRef.value.menuUrl = item.menuUrl;
   resvPopupRef.value.name = item.name;
@@ -216,17 +251,18 @@ function saveListMenu(item) {
 }
 async function saveResv() {
   //console.log("menu", resv.value);
-  
+
   if (!reservation.value[reservation.value.length - 1].isReceipt) {
     reservation.value.pop();
   }
 
   const data = {
-    [reservation.value.length]: {  "cost": resv.value.cost,
+    [reservation.value.length]: {
+      "cost": resv.value.cost,
       "isReceipt": false,
       "menu": resv.value.menu,
       "restaurantId": resv.value.restaurantId,
-      "resvDate": resv.value.resvDate.replace(/-/g, '')                       
+      "resvDate": resv.value.resvDate.replace(/-/g, '')
     }
   }
 
@@ -279,8 +315,8 @@ async function selectData() {
   isLoading.value = true;          // <-- 로딩 시작
   try {
     await selectReservation();
-    await selectRestaurant();
     await selectPrepayment();
+    await selectRestaurant();
   } finally {
     isLoading.value = false;       // <-- 로딩 종료
   }
@@ -288,7 +324,7 @@ async function selectData() {
 
 async function selectPrepayment() {
   const dbRef = firebaseRef(database, "lunch-resv/prepayment/" + uid.value);
-  get(dbRef)
+  await get(dbRef)
     .then(snapshot => {
       if (snapshot.exists()) {
         prepayment.value = snapshot.val();
@@ -302,7 +338,7 @@ async function selectPrepayment() {
 
 async function selectBlockRestaurant() {
   const dbRef = firebaseRef(database, "lunch-resv/blockRestaurant/resv/" + uid.value);
-  get(dbRef)
+  await get(dbRef)
     .then(snapshot => {
       if (snapshot.exists()) {
         blockRestaurant.value = snapshot.val();
@@ -385,6 +421,12 @@ onMounted(async () => {
 
   await selectBlockRestaurant()
   await selectData();
+
+  console.log("blockRestaurant", blockRestaurant.value);
+  console.log("restaurant", restaurant.value);
+  console.log("restaurantData", restaurantData.value);
+  console.log("reservation", reservation.value);
+  console.log("prepayment", prepayment.value);
 });
 
 
