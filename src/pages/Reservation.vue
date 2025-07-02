@@ -97,6 +97,7 @@ async function shareResv() {
   prepayText += `합계     ${formatCurrency(total).padStart(7)}`;
 
   const content = `
+  
 □ 메뉴 : ${resvPopupData.value.menu}
 □ 예약일 : ${formatKoreanDate(resvPopupData.value.resvDate)}
 
