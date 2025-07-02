@@ -87,23 +87,24 @@ function formatCurrency(amount) {
 async function shareResv() {
   let prepayText = '';
   prepayPopupData.value.forEach(item => {
-    const line = `  ${formatKoreanDate(item.date)} ${formatCurrency(item.amount).padStart(7)}`;
+    const line = `${formatKoreanDate(item.date)} ${formatCurrency(item.amount).padStart(7)}`;
     prepayText += line + '\n';
   });
 
   // 합계 계산
   const total = prepayPopupData.value.reduce((sum, item) => sum + item.amount, 0);
-  prepayText += '  -----------------\n';
-  prepayText += `  합계     ${formatCurrency(total).padStart(7)}\n`;
+  prepayText += '----------------------\n';
+  prepayText += `합계     ${formatCurrency(total).padStart(7)}`;
 
-  const content = `□ 메뉴 : ${resvPopupData.value.menu}
+  const content = `
+□ 메뉴 : ${resvPopupData.value.menu}
 □ 예약일 : ${formatKoreanDate(resvPopupData.value.resvDate)}
 □ 선결제
 ${prepayText}`
 
   if (navigator.share) {
     await navigator.share({
-      title: '포장주문 메뉴 및 선결제 내역',
+      title: '포장주문 및 선결제 내역',
       text: content
     });
   } else {
