@@ -43,9 +43,9 @@ const appMenu = [
 
 
 const headerPrepayment = [
-  { title: '날짜', key: 'date', width: 140 },
+  { title: '날짜', key: 'date', width: 160 },
   { title: '금액', key: 'amount' },
-  { title: '', key: 'delete', width: 10 }
+  { title: '', key: 'delete', width: 8 }
 ];
 
 const headers = [
@@ -358,7 +358,7 @@ async function deleteResv() {
 
 
 
-async function saveResv() {
+async function saveResv(recp) {
   //console.log("menu", resv.value);
   if (resvTab.value === 'menu') {
 
@@ -367,7 +367,7 @@ async function saveResv() {
     const data = {
       [key]: {
         "cost": Number(resvPopupData.value.cost),
-        "isReceipt": false,
+        "isReceipt": recp,
         "menu": resvPopupData.value.menu,
         "restaurantId": resvPopupData.value.restaurantId,
         "resvDate": resvPopupData.value.resvDate.replace(/-/g, '')
@@ -582,7 +582,7 @@ onMounted(async () => {
       <v-app-bar-title class="d-flex align-center">
         <span class="d-inline-flex justify-center align-center mr-2" style="width:28px">
           <v-progress-circular v-if="isLoading" indeterminate size="21" width="2" color="white" />
-          <v-icon v-else size="24" @click="selectData()">mdi-food
+          <v-icon v-else size="24" @click="selectData()">mdi-package-variant
           </v-icon>
         </span>
         포장 예약
@@ -669,9 +669,9 @@ onMounted(async () => {
         <v-card-actions>
           <v-btn @click="shareResv()" icon="mdi-share-variant" variant="text"></v-btn>
           <v-spacer></v-spacer>
-          <v-btn @click="saveResv()" :disabled="resvTab !== 'menu'" icon="mdi-package-variant-closed-check"
+          <v-btn @click="saveResv(true)" :disabled="resvTab !== 'menu'" icon="mdi-package-variant-closed-check"
             variant="text"></v-btn>
-          <v-btn @click="saveResv()" icon="mdi-content-save" variant="text"></v-btn>
+          <v-btn @click="saveResv(false)" icon="mdi-content-save" variant="text"></v-btn>
           <v-btn @click="deleteResv()" :disabled="resvPopupData.key === -1 || resvTab !== 'menu'" icon="mdi-delete"
             variant="text"></v-btn>
           <v-btn @click="isResvPopup = false" icon="mdi-close-thick"></v-btn>
@@ -691,7 +691,6 @@ onMounted(async () => {
             <span style="cursor: pointer;" @click="saveListMenu(item)">{{ item.menu }}</span>
           </template>
         </v-data-table>
-
         <v-card-actions>
           <v-btn @click="isListPopup = false" icon="mdi-close-thick"></v-btn>
         </v-card-actions>
