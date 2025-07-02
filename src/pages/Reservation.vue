@@ -18,10 +18,11 @@ const restaurantData = ref({});
 const restaurantInfo = ref({});
 const reservation = ref([]);
 const isResvPopup = ref(false);
-const resv = ref({});
+const resvPopupData = ref({});
 const blockRestaurant = ref([]);
 const resvPopupRef = ref({});
 const prepayment = ref({});
+const prepayPopupData = ref([]);
 
 const isListPopup = ref(false);
 const listPopupTitle = ref('');
@@ -42,9 +43,9 @@ const appMenu = [
 
 
 const headerPrepayment = [
-  { title: '날짜', key: 'date' },
+  { title: '날짜', key: 'date', width: 140 },
   { title: '금액', key: 'amount' },
-  { title: '', key: 'delete' }
+  { title: '', key: 'delete', width: 10 }
 ];
 
 const headers = [
@@ -77,6 +78,39 @@ function addRestraurant() {
   isRestaurantAdd.value = true;
   isRestaurantPopup.value = true;
 }
+
+function formatCurrency(amount) {
+  return amount.toLocaleString('ko-KR') + '원';
+}
+
+
+async function shareResv() {
+  let prepayText = '';
+  prepayPopupData.value.forEach(item => {
+    const line = `  ${formatKoreanDate(item.date)} ${formatCurrency(item.amount).padStart(7)}`;
+    prepayText += line + '\n';
+  });
+
+  // 합계 계산
+  const total = prepayPopupData.value.reduce((sum, item) => sum + item.amount, 0);
+  prepayText += '  -----------------\n';
+  prepayText += `  합계     ${formatCurrency(total).padStart(7)}\n`;
+
+  const content = `□ 메뉴 : ${resvPopupData.value.menu}
+□ 예약일 : ${formatKoreanDate(resvPopupData.value.resvDate)}
+□ 선결제
+${prepayText}`
+
+  if (navigator.share) {
+    await navigator.share({
+      title: '포장주문 메뉴 및 선결제 내역',
+      text: content
+    });
+  } else {
+    alert('공유 API를 지원하지 않는 브라우저입니다.');
+  }
+}
+
 async function selectRestaurant() {
 
   const dbRef = firebaseRef(database, "lunch-resv/restaurant");
@@ -111,12 +145,14 @@ async function selectRestaurant() {
                 resvMenu: selected.menu,
                 resvDate: selected.resvDate,
                 cost: selected.cost,
-                isReceipt: selected.isReceipt
+                isReceipt: selected.isReceipt,
+                resvKey: selected.key
               } : {
                 resvMenu: '',
                 resvDate: '',
                 cost: 0,
-                isReceipt: true
+                isReceipt: true,
+                resvKey: -1
               }),
               prepay
             });
@@ -150,7 +186,15 @@ async function selectReservation() {
   await get(dbRef)
     .then(snapshot => {
       if (snapshot.exists()) {
-        reservation.value = snapshot.val();
+        const data = snapshot.val();
+
+        reservation.value = [];
+        Object.keys(data).forEach(key => {
+          //console.log("key", key);
+          reservation.value.push({ ...data[key], 'key': Number(key) });
+        })
+
+
         //console.log(reservation.value)
       }
     })
@@ -160,11 +204,10 @@ async function selectReservation() {
 }
 
 function formatKoreanDate(dateString) {
-  if (!/^\d{8}$/.test(dateString)) return '잘못된 형식';
 
   const year = parseInt(dateString.substring(0, 4), 10);
-  const month = parseInt(dateString.substring(4, 6), 10) - 1; // JS는 0부터 시작
-  const day = parseInt(dateString.substring(6, 8), 10);
+  const month = parseInt(dateString.substring(5, 7), 10) - 1; // JS는 0부터 시작
+  const day = parseInt(dateString.substring(8, 10), 10);
 
   const date = new Date(year, month, day);
   if (isNaN(date)) return '유효하지 않은 날짜';
@@ -214,16 +257,46 @@ function getFormatedDate(raw) {
   return `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`;
 }
 
-function onClickRestaurant(item) {
-  resv.value = {
-    "cost": item.cost,
-    "isReceipt": item.isReceipt,
-    "menu": item.resvMenu,
-    "restaurantId": item.id,
-    "resvDate": getFormatedDate(item.resvDate)
+function getNewKey(arr) {
+  let key = 0;
+  if (arr) {
+    const keys = arr.map(item => item.key);
+    // 0부터 순차적으로 증가하며 비어있는 값을 찾기
+    while (keys.includes(key)) {
+      key++;
+    }
+  } else {
+    key = 0;
   }
 
-  console.log("resv.value", resv.value);
+  return key;
+}
+
+function onClickRestaurant(item) {
+  console.log("popup", item);
+
+  resvPopupData.value = {
+    "cost": item.cost,
+    "isReceipt": false,
+    "key": item.resvKey,
+    "menu": item.resvMenu,
+    "restaurantId": item.id,
+    "resvDate": item.isReceipt ? getNextFridayFormatted() : getFormatedDate(item.resvDate)
+  }
+
+  prepayPopupData.value = [];
+
+  if (Array.isArray(prepayment.value[item.id])) {
+    prepayment.value[item.id].forEach(r => {
+      prepayPopupData.value.push({
+        "amount": r.amount,
+        "date": getFormatedDate(r.date)
+      });
+    })
+  }
+
+  console.log("resvPopupData", resvPopupData.value);
+  console.log("prepayPopupData", prepayPopupData.value);
 
   resvPopupRef.value.menuUrl = item.menuUrl;
   resvPopupRef.value.name = item.name;
@@ -231,6 +304,23 @@ function onClickRestaurant(item) {
   isResvPopup.value = true;
 }
 
+function getNextFridayFormatted() {
+  const today = new Date();
+  const dayOfWeek = today.getDay(); // 0(일) ~ 6(토)
+
+  // 금요일까지 남은 일수 계산 (금요일: 5)
+  const daysUntilFriday = (5 - dayOfWeek + 7) % 7 || 7;
+
+  const nextFriday = new Date(today);
+  nextFriday.setDate(today.getDate() + daysUntilFriday);
+
+  // "yyyy-MM-dd" 형식으로 반환
+  const yyyy = nextFriday.getFullYear();
+  const mm = String(nextFriday.getMonth() + 1).padStart(2, '0');
+  const dd = String(nextFriday.getDate()).padStart(2, '0');
+
+  return `${yyyy}-${mm}-${dd}`;
+}
 
 function menuList(id) {
   const uniqueMenus = [...new Set(
@@ -243,37 +333,69 @@ function menuList(id) {
 }
 
 function saveListMenu(item) {
-  resv.value = item;
-  resv.value.date = getToday();
+  resvPopupData.value = item;
+  resvPopupData.value.date = getToday();
 
   saveResv();
   isListPopup.value = false;
 }
-async function saveResv() {
-  //console.log("menu", resv.value);
 
-  if (!reservation.value[reservation.value.length - 1].isReceipt) {
-    reservation.value.pop();
-  }
-
-  const data = {
-    [reservation.value.length]: {
-      "cost": resv.value.cost,
-      "isReceipt": false,
-      "menu": resv.value.menu,
-      "restaurantId": resv.value.restaurantId,
-      "resvDate": resv.value.resvDate.replace(/-/g, '')
-    }
-  }
-
+async function deleteResv() {
   try {
-    const dbRef = firebaseRef(database, "lunch-resv/reservation/" + uid.value);
-    await update(dbRef, data); // 데이터를 저장
+    const dbRef = firebaseRef(database, `lunch-resv/reservation/${uid.value}/${resvPopupData.value.key}`);
+    await remove(dbRef); // 데이터를 저장
   } catch (err) {
     console.error("Error saving data:", err);
   }
 
   await selectReservation();
+  await selectRestaurant();
+  isResvPopup.value = false;
+}
+
+
+
+async function saveResv() {
+  //console.log("menu", resv.value);
+  if (resvTab.value === 'menu') {
+
+    const key = resvPopupData.value.key === -1 ? getNewKey(reservation.value) : resvPopupData.value.key;
+
+    const data = {
+      [key]: {
+        "cost": Number(resvPopupData.value.cost),
+        "isReceipt": false,
+        "menu": resvPopupData.value.menu,
+        "restaurantId": resvPopupData.value.restaurantId,
+        "resvDate": resvPopupData.value.resvDate.replace(/-/g, '')
+      }
+    }
+
+    try {
+      const dbRef = firebaseRef(database, "lunch-resv/reservation/" + uid.value);
+      await update(dbRef, data); // 데이터를 저장
+    } catch (err) {
+      console.error("Error saving data:", err);
+    }
+
+    await selectReservation();
+
+  } else {
+    const data = prepayPopupData.value.map(item => ({
+      amount: Number(item.amount),
+      date: item.date.replace(/-/g, '')
+    }));
+
+    try {
+      const dbRef = firebaseRef(database, `lunch-resv/prepayment/${uid.value}/${resvPopupData.value.restaurantId}`);
+      await set(dbRef, data); // 데이터를 저장
+    } catch (err) {
+      console.error("Error saving data:", err);
+    }
+
+    await selectPrepayment();
+  }
+
   await selectRestaurant();
   isResvPopup.value = false;
 }
@@ -352,15 +474,15 @@ async function selectBlockRestaurant() {
 }
 
 function addBlockRestaurant() {
-  if (!blockRestaurant.value.includes(resv.value.restaurantId)) {
-    blockRestaurant.value.push(resv.value.restaurantId);
+  if (!blockRestaurant.value.includes(resvPopupData.value.restaurantId)) {
+    blockRestaurant.value.push(resvPopupData.value.restaurantId);
   }
 
   saveBlockRestaurant()
 }
 
 function removeBlockRestaurant() {
-  const index = blockRestaurant.value.indexOf(resv.value.restaurantId);
+  const index = blockRestaurant.value.indexOf(resvPopupData.value.restaurantId);
   if (index > -1) {
     blockRestaurant.value.splice(index, 1);  // 배열에서 제거
   }
@@ -391,20 +513,22 @@ function openListPopup(item) {
 }
 
 function onClickAddPrepay() {
-  console.log(resv.value.restaurantId)
-  prepayment.value[resv.value.restaurantId].push({ "amount": 0, "date": "20250703" });
-  console.log(prepayment.value[resv.value.restaurantId])
+  prepayPopupData.value.push({ "amount": 0, "date": getFormatedDate(getToday()) });
 }
 
 
 function onClickEditRestaurant() {
-  restaurantInfo.value = restaurantData.value[resv.value.restaurantId];
-  restaurantInfo.value.id = resv.value.restaurantId;
+  restaurantInfo.value = restaurantData.value[resvPopupData.value.restaurantId];
+  restaurantInfo.value.id = resvPopupData.value.restaurantId;
 
   isRestaurantAdd.value = false;
   isResvPopup.value = false;
   isRestaurantPopup.value = true;
 
+}
+
+function onClickDelPrepay(index) {
+  prepayPopupData.value.splice(index, 1);
 }
 
 const rules = {
@@ -507,31 +631,46 @@ onMounted(async () => {
         <v-tabs-window v-model="resvTab">
           <v-tabs-window-item value="menu">
             <v-card-text style="height: 320px; overflow-y: auto;">
-              <v-text-field v-model="resv.menu" label="메뉴" variant="outlined" />
-              <v-text-field v-model="resv.cost" label="가격" type="number" variant="outlined" />
-              <v-text-field v-model="resv.resvDate" label="예약일" type="date" variant="outlined" />
+              <v-text-field v-model="resvPopupData.menu" label="메뉴" variant="outlined" />
+              <v-row>
+                <v-col col="6"><v-text-field v-model="resvPopupData.cost" label="가격" type="number"
+                    variant="outlined" /></v-col>
+                <v-col col="6">
+                  <v-text-field readonly label="선지불" variant="outlined"
+                    :model-value="prepayPopupData.reduce((sum, item) => sum + Number(item.amount), 0)" />
+                </v-col>
+              </v-row>
+              <v-text-field v-model="resvPopupData.resvDate" label="예약일" type="date" variant="outlined" />
             </v-card-text>
           </v-tabs-window-item>
           <v-tabs-window-item value="prepayment">
             <v-card-text style="height: 320px; overflow-y: auto;">
-              <v-data-table :headers="headerPrepayment" :items="prepayment[resv.restaurantId]" hide-default-footer
+              <v-data-table dense :headers="headerPrepayment" :items="prepayPopupData" hide-default-footer
                 items-per-page="-1" :show-items-per-page="false">
                 <template #header.delete>
-                  <v-btn size="small" @click="onClickAddPrepay()">추가</v-btn>
+                  <v-btn icon="mdi-plus" variant="text" @click="onClickAddPrepay()" />
                 </template>
-                <template #item.delete="{ item }">
-                  <v-btn size="small">del</v-btn>
+                <template #item.date="{ item }">
+                  <v-text-field v-model="item.date" variant="plain" type="date" />
+                </template>
+                <template #item.amount="{ item }">
+                  <v-text-field v-model="item.amount" variant="plain" type="number" />
+                </template>
+                <template #item.delete="{ item, index }">
+                  <v-btn icon="mdi-delete" variant="text" @click="onClickDelPrepay(index)" />
                 </template>
               </v-data-table>
             </v-card-text>
           </v-tabs-window-item>
         </v-tabs-window>
         <v-card-actions>
+          <v-btn @click="shareResv()" icon="mdi-share-variant" variant="text"></v-btn>
           <v-spacer></v-spacer>
           <v-btn @click="saveResv()" :disabled="resvTab !== 'menu'" icon="mdi-package-variant-closed-check"
             variant="text"></v-btn>
-          <v-btn @click="saveResv()" :disabled="resvTab !== 'menu'" icon="mdi-content-save" variant="text"></v-btn>
-          <v-btn @click="deleteMenu()" :disabled="!resvPopupRef.isChoice" icon="mdi-delete" variant="text"></v-btn>
+          <v-btn @click="saveResv()" icon="mdi-content-save" variant="text"></v-btn>
+          <v-btn @click="deleteResv()" :disabled="resvPopupData.key === -1 || resvTab !== 'menu'" icon="mdi-delete"
+            variant="text"></v-btn>
           <v-btn @click="isResvPopup = false" icon="mdi-close-thick"></v-btn>
         </v-card-actions>
       </v-card>
@@ -555,6 +694,7 @@ onMounted(async () => {
         </v-card-actions>
       </v-card>
     </v-dialog>
+
     <v-dialog v-model="isRestaurantPopup" max-width="600px">
       <v-card>
         <v-card-title>{{ isRestaurantAdd ? "식당 등록" : restaurantInfo.id }}</v-card-title>
@@ -567,6 +707,9 @@ onMounted(async () => {
           <v-text-field v-model="restaurantInfo.menuUrl" label="메뉴 URL" variant="outlined" class="menu-url-field" />
         </v-card-text>
         <v-card-actions>
+          <v-btn icon="mdi-cancel" :color="blockRestaurant.includes(restaurantInfo.id) ? 'red' : 'black'"
+            @click="blockRestaurant.includes(restaurantInfo.id) ? removeBlockRestaurant() : addBlockRestaurant()"></v-btn>
+          <v-spacer></v-spacer>
           <v-btn @click="saveRestaurant()" icon="mdi-check-bold"></v-btn>
           <v-btn @click="isRestaurantPopup = false" icon="mdi-close-thick"></v-btn>
         </v-card-actions>
