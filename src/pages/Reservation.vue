@@ -592,11 +592,11 @@ onMounted(async () => {
         <template v-slot:item.resvMenu="{ item }">
           <div :style="{ textAlign: 'center', cursor: item.resvMenu ? 'pointer' : '' }"
             @click="item.resvMenu ? openListPopup(item) : null">
-            <span :style="{ color: item.isReceipt ? 'silver' : item.prepay >= item.cost ? 'primary' : 'error' }">{{
-              item.resvMenu }}</span><br />
+            <span :class="item.isReceipt ? 'text-grey' : item.prepay >= item.cost ? 'text-primary' : 'text-error'">
+            {{item.resvMenu }}</span><br />
             <small v-if="!item.isReceipt && item.cost > 0" style="color: grey;">({{ (item.cost -
               item.prepay).toLocaleString('ko-KR')
-              }})</small>
+              }})</small>              
           </div>
         </template>
         <template v-slot:item.telNo="{ item }">
