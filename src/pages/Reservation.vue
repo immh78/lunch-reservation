@@ -198,12 +198,13 @@ async function selectRestaurant() {
 
 async function selectReservation() {
   const dbRef = firebaseRef(database, "lunch-resv/reservation/" + uid.value);
+  reservation.value = [];
+
   await get(dbRef)
     .then(snapshot => {
       if (snapshot.exists()) {
         const data = snapshot.val();
-
-        reservation.value = [];
+        
         Object.keys(data).forEach(key => {
           //console.log("key", key);
           reservation.value.push({ ...data[key], 'key': Number(key) });
@@ -336,24 +337,28 @@ function onClickListMenu(item) {
   isResvPopup.value = true;
 }
 
-async function deleteResv() {
-  try {
-    const dbRef = firebaseRef(database, `lunch-resv/reservation/${uid.value}/${resvPopupData.value.key}`);
-    await remove(dbRef); // 데이터를 저장
-  } catch (err) {
-    console.error("Error saving data:", err);
-  }
+async function deleteResv(tab) {
+  if (tab === 'menu') {
+    try {
+      const dbRef = firebaseRef(database, `lunch-resv/reservation/${uid.value}/${resvPopupData.value.key}`);
+      await remove(dbRef); // 데이터를 저장
+    } catch (err) {
+      console.error("Error saving data:", err);
+    }
+    await selectReservation();
+    await selectRestaurant();
+    isResvPopup.value = false;
 
-  await selectReservation();
-  await selectRestaurant();
-  isResvPopup.value = false;
+  } else {
+    prepayPopupData.value = [];
+  }
 }
 
 
 
-async function saveResv(recp) {
+async function saveResv(tab, recp) {
   //console.log("menu", resv.value);
-  if (resvTab.value === 'menu') {
+  if (tab === 'menu') {
 
     const key = resvPopupData.value.key === -1 ? getNewKey(reservation.value) : resvPopupData.value.key;
 
@@ -396,19 +401,6 @@ async function saveResv(recp) {
   isResvPopup.value = false;
 }
 
-async function deleteMenu() {
-
-  try {
-    const dbRef = firebaseRef(database, "lunch-resv/reservation/" + uid.value + "/" + (reservation.value.length - 1));
-    await remove(dbRef); // 데이터를 저장
-  } catch (err) {
-    console.error("Error saving data:", err);
-  }
-
-  await selectReservation();
-  await selectRestaurant();
-  isResvPopup.value = false;
-}
 
 async function saveRestaurant() {
   const data = {
@@ -441,6 +433,8 @@ async function selectData() {
 }
 
 async function selectPrepayment() {
+  prepayment.value = [];
+
   const dbRef = firebaseRef(database, "lunch-resv/prepayment/" + uid.value);
   await get(dbRef)
     .then(snapshot => {
@@ -455,13 +449,13 @@ async function selectPrepayment() {
 
 
 async function selectBlockRestaurant() {
+  blockRestaurant.value = [];
+
   const dbRef = firebaseRef(database, "lunch-resv/blockRestaurant/resv/" + uid.value);
   await get(dbRef)
     .then(snapshot => {
       if (snapshot.exists()) {
         blockRestaurant.value = snapshot.val();
-      } else {
-        blockRestaurant.value = [];
       }
     })
     .catch(err => {
@@ -598,10 +592,11 @@ onMounted(async () => {
         <template v-slot:item.resvMenu="{ item }">
           <div :style="{ textAlign: 'center', cursor: item.resvMenu ? 'pointer' : '' }"
             @click="item.resvMenu ? openListPopup(item) : null">
-            <span :style="{ color: item.isReceipt ? 'silver' : item.prepay >= item.cost ? 'black' : 'red' }">{{
+            <span :style="{ color: item.isReceipt ? 'silver' : item.prepay >= item.cost ? 'blue' : 'red' }">{{
               item.resvMenu }}</span><br />
-            <small v-if="item.cost > 0" style="color: grey;">({{ (item.cost - item.prepay).toLocaleString('ko-KR')
-            }})</small>
+            <small v-if="!item.isReceipt && item.cost > 0" style="color: grey;">({{ (item.cost -
+              item.prepay).toLocaleString('ko-KR')
+              }})</small>
           </div>
         </template>
         <template v-slot:item.telNo="{ item }">
@@ -668,11 +663,11 @@ onMounted(async () => {
         <v-card-actions>
           <v-btn @click="shareResv()" icon="mdi-share-variant" variant="text"></v-btn>
           <v-spacer></v-spacer>
-          <v-btn @click="saveResv(true)" :disabled="resvTab !== 'menu'" icon="mdi-package-variant-closed-check"
+          <v-btn @click="saveResv(resvTab, true)" :disabled="resvTab !== 'menu'" icon="mdi-package-variant-closed-check"
             variant="text"></v-btn>
-          <v-btn @click="saveResv(false)" icon="mdi-content-save" variant="text"></v-btn>
-          <v-btn @click="deleteResv()" :disabled="resvPopupData.key === -1 || resvTab !== 'menu'" icon="mdi-delete"
-            variant="text"></v-btn>
+          <v-btn @click="saveResv(resvTab, false)" icon="mdi-content-save" variant="text"></v-btn>
+          <v-btn @click="deleteResv(resvTab)" :disabled="resvPopupData.key === -1 && resvTab === 'menu'"
+            icon="mdi-delete" variant="text"></v-btn>
           <v-btn @click="isResvPopup = false" icon="mdi-close-thick"></v-btn>
         </v-card-actions>
       </v-card>
@@ -718,11 +713,11 @@ onMounted(async () => {
                 <td align="center"><v-icon @click="recoverBlockRestaurant(item)">mdi-reply</v-icon></td>
               </tr>
             </tbody>
-          </v-table>          
-        </v-card-text>        
+          </v-table>
+        </v-card-text>
         <v-fab icon="mdi-close-thick" @click="isBlockPopup = false" class="fixed-fab" color="blue"></v-fab>
       </v-card>
-      
+
     </v-dialog>
 
     <v-dialog v-model="isRestaurantPopup" max-width="600px">
@@ -756,12 +751,12 @@ onMounted(async () => {
 }
 
 .fixed-fab {
-    position: fixed;
-    bottom: 16px;
-    /* 화면 하단에서 16px 위 */
-    right: 16px;
-    /* 화면 우측에서 16px 왼쪽 */
-    z-index: 1050;
-    /* 다른 요소 위에 표시되도록 설정 */
+  position: fixed;
+  bottom: 16px;
+  /* 화면 하단에서 16px 위 */
+  right: 16px;
+  /* 화면 우측에서 16px 왼쪽 */
+  z-index: 1050;
+  /* 다른 요소 위에 표시되도록 설정 */
 }
 </style>

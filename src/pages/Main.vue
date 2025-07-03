@@ -57,7 +57,16 @@ const listHeaders = [
   { title: '메뉴', align: 'start', key: 'menu', value: 'menu' },
 ];
 
-const restaurantKind = ['한식', '중식', '패스트푸드', '일식', '카페', '베이커리'];
+const restaurantKind = {
+  '한식': 'mdi-bowl-mix',
+  '중식': 'mdi-noodles',
+  '패스트푸드': 'mdi-food-fork-drink',
+  '분식': 'mdi-pot-steam',
+  '일식': 'mdi-fish',
+  '카페': 'mdi-coffee',
+  '베이커리': 'mdi-baguette'
+}
+
 
 async function logout() {
   await signOut(auth);
@@ -191,31 +200,6 @@ function getToday() {
   const day = String(today.getDate()).padStart(2, '0');
 
   return `${year}${month}${day}`;
-}
-
-
-function foodImage(s) {
-  let icon;
-  switch (s) {
-    case '한식':
-      icon = 'mdi-bowl-mix';
-      break;
-    case '중식':
-      icon = 'mdi-noodles';
-      break;
-    case '패스트푸드':
-      icon = 'mdi-food-fork-drink';
-      break;
-    case '일식':
-      icon = 'mdi-fish';
-    case '카페':
-      icon = 'mdi-coffee';
-    case '베이커리':
-      icon = 'mdi-baguette';
-      break;
-  }
-
-  return icon;
 }
 
 function choiceMenu(item) {
@@ -438,7 +422,7 @@ onMounted(async () => {
         <template v-slot:item.name="{ item }">
           <v-btn :variant="item.lastDate === getToday() ? 'flat' : 'tonal'"
             :color="blockRestaurant.includes(item.id) ? 'grey-darken-3' : 'primary'" class="px-1"
-            @click="choiceMenu(item)"><v-icon>{{ foodImage(item.kind) }}</v-icon> {{ item.name }}</v-btn>
+            @click="choiceMenu(item)"><v-icon>{{ restaurantKind[item.kind] }}</v-icon> {{ item.name }}</v-btn>
         </template>
         <template v-slot:item.lastDate="{ item }">
           <div :style="{ cursor: item.lastDate ? 'pointer' : '' }" @click="item.lastDate ? openListPopup(item) : null">
@@ -510,7 +494,7 @@ onMounted(async () => {
           <v-text-field v-if="isRestaurantAdd" v-model="restaurantInfo.id" label="식당 ID" variant="outlined"
             :rules="[rules.required, rules.uppercase]" @update:model-value="toUpper" />
           <v-text-field v-model="restaurantInfo.name" label="식당명" variant="outlined" :rules="[rules.required]" />
-          <v-combobox v-model="restaurantInfo.kind" label="종류" :items="restaurantKind" variant="outlined"></v-combobox>
+          <v-combobox v-model="restaurantInfo.kind" label="종류" :items="Object.keys(restaurantKind)" variant="outlined"></v-combobox>
           <v-text-field v-model="restaurantInfo.telNo" label="전화번호" variant="outlined"></v-text-field>
           <v-text-field v-model="restaurantInfo.menuUrl" label="메뉴 URL" variant="outlined" class="menu-url-field" />
         </v-card-text>
