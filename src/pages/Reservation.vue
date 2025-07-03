@@ -34,11 +34,14 @@ const isLoading = ref(false);
 const isRestaurantPopup = ref(false);
 const isRestaurantAdd = ref(false);
 
+const isBlockPopup = ref(false);
+
 const resvTab = ref('');
 
 const appMenu = [
-  { title: '식당 등록', action: addRestraurant },
   { title: '점심 선택', action: nextLunch },
+  { title: '식당 등록', action: addRestraurant },
+  { title: '식당목록 관리', action: setRestraurantList },
   { title: '로그아웃', action: logout }
 ];
 
@@ -51,7 +54,7 @@ const headerPrepayment = [
 
 const headers = [
   { title: '식당', key: 'name', align: 'start' },
-  { title: '예약메뉴', key: 'resvMenu', align: 'start' },
+  { title: '예약메뉴', key: 'resvMenu', align: 'center' },
   { title: '전화', key: 'telNo', align: 'end', sortable: false }
 ];
 
@@ -60,7 +63,15 @@ const listHeaders = [
   { title: '메뉴', align: 'start', key: 'menu', value: 'menu' },
 ];
 
-const restaurantKind = ['한식', '중식', '패스트푸드', '일식', '카페', '베이커리'];
+const restaurantKind = {
+  '한식': 'mdi-bowl-mix',
+  '중식': 'mdi-noodles',
+  '패스트푸드': 'mdi-food-fork-drink',
+  '분식': 'mdi-pot-steam',
+  '일식': 'mdi-fish',
+  '카페': 'mdi-coffee',
+  '베이커리': 'mdi-baguette'
+}
 
 async function logout() {
   await signOut(auth);
@@ -232,29 +243,8 @@ function getToday() {
   return `${year}${month}${day}`;
 }
 
-
-function foodImage(s) {
-  let icon;
-  switch (s) {
-    case '한식':
-      icon = 'mdi-bowl-mix';
-      break;
-    case '중식':
-      icon = 'mdi-noodles';
-      break;
-    case '패스트푸드':
-      icon = 'mdi-food-fork-drink';
-      break;
-    case '일식':
-      icon = 'mdi-fish';
-    case '카페':
-      icon = 'mdi-coffee';
-    case '베이커리':
-      icon = 'mdi-baguette';
-      break;
-  }
-
-  return icon;
+function setRestraurantList() {
+  isBlockPopup.value = true;
 }
 
 function getFormatedDate(raw) {
@@ -487,14 +477,19 @@ function addBlockRestaurant() {
   saveBlockRestaurant()
 }
 
-function removeBlockRestaurant() {
-  const index = blockRestaurant.value.indexOf(resvPopupData.value.restaurantId);
+async function removeBlockRestaurant(resvId) {
+  const index = blockRestaurant.value.indexOf(resvId);
   if (index > -1) {
     blockRestaurant.value.splice(index, 1);  // 배열에서 제거
   }
-  saveBlockRestaurant()
+  await saveBlockRestaurant();
 }
 
+async function recoverBlockRestaurant(resvId) {
+  await removeBlockRestaurant(resvId);
+  isBlockPopup.value = false;
+  selectRestaurant();
+}
 
 async function saveBlockRestaurant() {
   try {
@@ -598,11 +593,15 @@ onMounted(async () => {
         <template v-slot:item.name="{ item }">
           <v-btn :variant="item.lastDate === getToday() ? 'flat' : 'tonal'"
             :color="blockRestaurant.includes(item.id) ? 'grey-darken-3' : 'primary'" class="px-1"
-            @click="onClickRestaurant(item)"><v-icon>{{ foodImage(item.kind) }}</v-icon> {{ item.name }}</v-btn>
+            @click="onClickRestaurant(item)"><v-icon>{{ restaurantKind[item.kind] }}</v-icon> {{ item.name }}</v-btn>
         </template>
         <template v-slot:item.resvMenu="{ item }">
-          <div :style="{ cursor: item.resvMenu ? 'pointer' : '' }" @click="item.resvMenu ? openListPopup(item) : null">
-            <span :style="{color: item.isReceipt ? 'silver' : item.prepay >= item.cost ? 'black' : 'red'}">{{ item.resvMenu }}</span>
+          <div :style="{ textAlign: 'center', cursor: item.resvMenu ? 'pointer' : '' }"
+            @click="item.resvMenu ? openListPopup(item) : null">
+            <span :style="{ color: item.isReceipt ? 'silver' : item.prepay >= item.cost ? 'black' : 'red' }">{{
+              item.resvMenu }}</span><br />
+            <small v-if="item.cost > 0" style="color: grey;">({{ (item.cost - item.prepay).toLocaleString('ko-KR')
+            }})</small>
           </div>
         </template>
         <template v-slot:item.telNo="{ item }">
@@ -648,8 +647,8 @@ onMounted(async () => {
           </v-tabs-window-item>
           <v-tabs-window-item value="prepayment">
             <v-card-text class='mx-1 px-0' style="height: 320px; overflow-y: auto;">
-              <v-data-table :headers="headerPrepayment" :items="prepayPopupData" hide-default-footer
-                items-per-page="-1" :show-items-per-page="false">
+              <v-data-table :headers="headerPrepayment" :items="prepayPopupData" hide-default-footer items-per-page="-1"
+                :show-items-per-page="false">
                 <template #header.delete>
                   <v-btn icon="mdi-plus" variant="text" @click="onClickAddPrepay()" />
                 </template>
@@ -660,7 +659,7 @@ onMounted(async () => {
                   <v-text-field v-model="item.amount" variant="plain" type="number" />
                 </template>
                 <template #item.delete="{ item, index }">
-                  <v-btn  icon="mdi-delete" variant="text" @click="onClickDelPrepay(index)" />
+                  <v-btn icon="mdi-delete" variant="text" @click="onClickDelPrepay(index)" />
                 </template>
               </v-data-table>
             </v-card-text>
@@ -688,13 +687,42 @@ onMounted(async () => {
           </template>
 
           <template v-slot:item.menu="{ item }">
-            <span :style="{cursor: listPopupSelectable ? 'pointer' : ''}" @click="listPopupSelectable ? onClickListMenu(item) : null">{{ item.menu }}</span>
+            <span :style="{ cursor: listPopupSelectable ? 'pointer' : '' }"
+              @click="listPopupSelectable ? onClickListMenu(item) : null">{{ item.menu }}</span>
           </template>
         </v-data-table>
         <v-card-actions>
           <v-btn @click="isListPopup = false" icon="mdi-close-thick"></v-btn>
         </v-card-actions>
       </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="isBlockPopup" max-width="600px">
+      <v-card>
+        <v-card-title>숨김 식당목록 관리</v-card-title>
+        <v-card-text>
+          <v-table>
+            <thead>
+              <tr>
+                <th class="text-left">
+                  식당
+                </th>
+                <th class="text-right">
+                  숨김취소
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in blockRestaurant" :key="item">
+                <td>{{ restaurantData[item].name }}</td>
+                <td align="center"><v-icon @click="recoverBlockRestaurant(item)">mdi-reply</v-icon></td>
+              </tr>
+            </tbody>
+          </v-table>          
+        </v-card-text>        
+        <v-fab icon="mdi-close-thick" @click="isBlockPopup = false" class="fixed-fab" color="blue"></v-fab>
+      </v-card>
+      
     </v-dialog>
 
     <v-dialog v-model="isRestaurantPopup" max-width="600px">
@@ -704,13 +732,14 @@ onMounted(async () => {
           <v-text-field v-if="isRestaurantAdd" v-model="restaurantInfo.id" label="식당 ID" variant="outlined"
             :rules="[rules.required, rules.uppercase]" @update:model-value="toUpper" />
           <v-text-field v-model="restaurantInfo.name" label="식당명" variant="outlined" :rules="[rules.required]" />
-          <v-combobox v-model="restaurantInfo.kind" label="종류" :items="restaurantKind" variant="outlined"></v-combobox>
+          <v-combobox v-model="restaurantInfo.kind" label="종류" :items="Object.keys(restaurantKind)"
+            variant="outlined"></v-combobox>
           <v-text-field v-model="restaurantInfo.telNo" label="전화번호" variant="outlined"></v-text-field>
           <v-text-field v-model="restaurantInfo.menuUrl" label="메뉴 URL" variant="outlined" class="menu-url-field" />
         </v-card-text>
         <v-card-actions>
           <v-btn icon="mdi-cancel" :color="blockRestaurant.includes(restaurantInfo.id) ? 'red' : 'black'"
-            @click="blockRestaurant.includes(restaurantInfo.id) ? removeBlockRestaurant() : addBlockRestaurant()"></v-btn>
+            @click="blockRestaurant.includes(restaurantInfo.id) ? removeBlockRestaurant(restaurantInfo.id) : addBlockRestaurant()"></v-btn>
           <v-spacer></v-spacer>
           <v-btn @click="saveRestaurant()" icon="mdi-check-bold"></v-btn>
           <v-btn @click="isRestaurantPopup = false" icon="mdi-close-thick"></v-btn>
@@ -726,4 +755,13 @@ onMounted(async () => {
   overflow-x: auto;
 }
 
+.fixed-fab {
+    position: fixed;
+    bottom: 16px;
+    /* 화면 하단에서 16px 위 */
+    right: 16px;
+    /* 화면 우측에서 16px 왼쪽 */
+    z-index: 1050;
+    /* 다른 요소 위에 표시되도록 설정 */
+}
 </style>

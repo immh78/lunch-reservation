@@ -33,8 +33,8 @@ const isRestaurantPopup = ref(false);
 const isRestaurantAdd = ref(false);
 
 const appMenu = [
-  { title: '식당 등록', action: addRestraurant },
   { title: '포장 예약', action: nextReservation },
+  { title: '식당 등록', action: addRestraurant },
   { title: '로그아웃', action: logout }
 ];
 
