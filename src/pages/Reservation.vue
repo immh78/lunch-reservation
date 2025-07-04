@@ -204,7 +204,7 @@ async function selectReservation() {
     .then(snapshot => {
       if (snapshot.exists()) {
         const data = snapshot.val();
-        
+
         Object.keys(data).forEach(key => {
           //console.log("key", key);
           reservation.value.push({ ...data[key], 'key': Number(key) });
@@ -359,28 +359,31 @@ async function deleteResv(tab) {
 async function saveResv(tab, recp) {
   //console.log("menu", resv.value);
   if (tab === 'menu') {
+    if (resvPopupData.value.menu !== '') {
 
-    const key = resvPopupData.value.key === -1 ? getNewKey(reservation.value) : resvPopupData.value.key;
+      const key = resvPopupData.value.key === -1 ? getNewKey(reservation.value) : resvPopupData.value.key;
 
-    const data = {
-      [key]: {
-        "cost": Number(resvPopupData.value.cost),
-        "isReceipt": recp,
-        "menu": resvPopupData.value.menu,
-        "restaurantId": resvPopupData.value.restaurantId,
-        "resvDate": resvPopupData.value.resvDate.replace(/-/g, '')
+      const data = {
+        [key]: {
+          "cost": Number(resvPopupData.value.cost),
+          "isReceipt": recp,
+          "menu": resvPopupData.value.menu,
+          "restaurantId": resvPopupData.value.restaurantId,
+          "resvDate": resvPopupData.value.resvDate.replace(/-/g, '')
+        }
       }
+
+      try {
+        const dbRef = firebaseRef(database, "lunch-resv/reservation/" + uid.value);
+        await update(dbRef, data); // 데이터를 저장
+      } catch (err) {
+        console.error("Error saving data:", err);
+      }
+
+      await selectReservation();
+    } else {
+      return;
     }
-
-    try {
-      const dbRef = firebaseRef(database, "lunch-resv/reservation/" + uid.value);
-      await update(dbRef, data); // 데이터를 저장
-    } catch (err) {
-      console.error("Error saving data:", err);
-    }
-
-    await selectReservation();
-
   } else {
     const data = prepayPopupData.value.map(item => ({
       amount: Number(item.amount),
@@ -593,10 +596,10 @@ onMounted(async () => {
           <div :style="{ textAlign: 'center', cursor: item.resvMenu ? 'pointer' : '' }"
             @click="item.resvMenu ? openListPopup(item) : null">
             <span :class="item.isReceipt ? 'text-grey' : item.prepay >= item.cost ? 'text-primary' : 'text-error'">
-            {{item.resvMenu }}</span><br />
+              {{ item.resvMenu }}</span><br />
             <small v-if="!item.isReceipt && item.cost > 0" style="color: grey;">({{ (item.cost -
               item.prepay).toLocaleString('ko-KR')
-              }})</small>              
+            }})</small>
           </div>
         </template>
         <template v-slot:item.telNo="{ item }">
@@ -628,7 +631,8 @@ onMounted(async () => {
         <v-tabs-window v-model="resvTab">
           <v-tabs-window-item value="menu">
             <v-card-text style="height: 320px; overflow-y: auto;">
-              <v-text-field v-model="resvPopupData.menu" label="메뉴" variant="outlined" />
+              <v-text-field v-model="resvPopupData.menu" label="메뉴" variant="outlined"
+                :rules="[v => !!v || '메뉴는 필수입니다']" />
               <v-row>
                 <v-col col="6"><v-text-field v-model="resvPopupData.cost" label="가격" type="number"
                     variant="outlined" /></v-col>
@@ -665,7 +669,7 @@ onMounted(async () => {
           <v-spacer></v-spacer>
           <v-btn @click="saveResv(resvTab, true)" :disabled="resvTab !== 'menu'" icon="mdi-package-variant-closed-check"
             variant="text"></v-btn>
-          <v-btn @click="saveResv(resvTab, false)" icon="mdi-content-save" variant="text"></v-btn>
+          <v-btn @click="saveResv(resvTab, false)" :disabled="resvPopupData.menu === ''" icon="mdi-content-save" variant="text"></v-btn>
           <v-btn @click="deleteResv(resvTab)" :disabled="resvPopupData.key === -1 && resvTab === 'menu'"
             icon="mdi-delete" variant="text"></v-btn>
           <v-btn @click="isResvPopup = false" icon="mdi-close-thick"></v-btn>
