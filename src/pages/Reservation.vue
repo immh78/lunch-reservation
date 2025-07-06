@@ -512,7 +512,7 @@ function openListPopup(item) {
   listPopupSelectable.value = item.isReceipt;
 
   listPopupData.value = reservation.value.filter(log => log.restaurantId === item.id)
-    .sort((a, b) => b.date.localeCompare(a.date)); // 최신 순 정렬
+    .sort((a, b) => b.resvDate.localeCompare(a.resvDate)); // 최신 순 정렬
 
   console.log("listPopupData", listPopupData.value);
 
