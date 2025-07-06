@@ -33,10 +33,11 @@ const isRestaurantPopup = ref(false);
 const isRestaurantAdd = ref(false);
 
 const appMenu = [
-  { title: '포장 예약', action: nextReservation },
-  { title: '식당 등록', action: addRestraurant },
-  { title: '로그아웃', action: logout }
+  { title: {icon: 'mdi-package-variant', text :'포장 예약'}, action: nextReservation },
+  { title: {icon: 'mdi-plus', text: '식당 등록'}, action: addRestraurant },
+  { title: {icon: 'mdi-logout', text: '로그아웃' }, action: logout }
 ];
+
 
 const headers = computed(() => isMobile.value
   ? [
@@ -401,8 +402,8 @@ onMounted(async () => {
             <v-btn icon="mdi-dots-vertical" variant="text" v-bind="props"></v-btn>
           </template>
           <v-list>
-            <v-list-item v-for="(menu, i) in appMenu" :key="i" :value="i" @click="menu.action">
-              <v-list-item-title>{{ menu.title }}</v-list-item-title>
+            <v-list-item v-for="(menu, i) in appMenu" :key="i" :value="i" @click="menu.action" :prepend-icon="menu.title.icon">
+              <v-list-item-title>{{ menu.title.text }}</v-list-item-title>
             </v-list-item>
           </v-list>
         </v-menu>

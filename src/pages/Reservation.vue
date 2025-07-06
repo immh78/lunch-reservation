@@ -39,12 +39,11 @@ const isBlockPopup = ref(false);
 const resvTab = ref('');
 
 const appMenu = [
-  { title: '점심 선택', action: nextLunch },
-  { title: '식당 등록', action: addRestraurant },
-  { title: '식당목록 관리', action: setRestraurantList },
-  { title: '로그아웃', action: logout }
+  { title: {icon: 'mdi-food', text :'점심 선택'}, action: nextLunch },
+  { title: {icon: 'mdi-plus', text: '식당 등록'}, action: addRestraurant },
+  { title: {icon: 'mdi-playlist-edit', text: '식당목록 관리'}, action: setRestraurantList },
+  { title: {icon: 'mdi-logout', text: '로그아웃' }, action: logout }
 ];
-
 
 const headerPrepayment = [
   { title: '날짜', key: 'date', width: 160 },
@@ -52,11 +51,20 @@ const headerPrepayment = [
   { title: '', key: 'delete', align: 'end', width: 8 }
 ];
 
-const headers = [
-  { title: '식당', key: 'name', align: 'start' },
-  { title: '예약메뉴', key: 'resvMenu', align: 'center' },
-  { title: '전화', key: 'telNo', align: 'end', sortable: false }
-];
+const headers = computed(() => isMobile.value
+  ? [
+    { title: '식당', key: 'name', align: 'start' },
+    { title: '예약메뉴', key: 'resvMenu', align: 'center' },
+    { title: '전화', key: 'telNo', align: 'end', sortable: false }
+  ]
+  : [
+    { title: '식당', key: 'name', align: 'start' },
+    { title: '예약메뉴', key: 'resvMenu', align: 'center' },
+    { title: '가격', key: 'cost', align: 'end' },
+    { title: '선지불', key: 'prepay', align: 'end' },
+    { title: '전화', key: 'telNo', align: 'end', sortable: false }
+  ]
+);
 
 const listHeaders = [
   { title: '예약일', align: 'center', key: 'date', value: 'date' },
@@ -569,8 +577,8 @@ onMounted(async () => {
             <v-btn icon="mdi-dots-vertical" variant="text" v-bind="props"></v-btn>
           </template>
           <v-list>
-            <v-list-item v-for="(menu, i) in appMenu" :key="i" :value="i" @click="menu.action">
-              <v-list-item-title>{{ menu.title }}</v-list-item-title>
+            <v-list-item v-for="(menu, i) in appMenu" :key="i" :value="i" @click="menu.action" :prepend-icon="menu.title.icon">
+              <v-list-item-title>{{ menu.title.text }}</v-list-item-title>
             </v-list-item>
           </v-list>
         </v-menu>
@@ -608,6 +616,12 @@ onMounted(async () => {
             <v-icon size="18">mdi-phone</v-icon>
             <span class="ml-1">{{ item.telNo }}</span>
           </div>
+        </template>
+        <template #item.cost="{ item }">
+          <span v-if="item.cost > 0">{{ item.cost.toLocaleString('ko-KR') }}</span>
+        </template>
+        <template #item.prepay="{ item }">
+          <span v-if="item.cost > 0">{{ item.prepay.toLocaleString('ko-KR') }}</span>
         </template>
 
 
@@ -669,7 +683,8 @@ onMounted(async () => {
           <v-spacer></v-spacer>
           <v-btn @click="saveResv(resvTab, true)" :disabled="resvTab !== 'menu'" icon="mdi-package-variant-closed-check"
             variant="text"></v-btn>
-          <v-btn @click="saveResv(resvTab, false)" :disabled="resvPopupData.menu === ''" icon="mdi-content-save" variant="text"></v-btn>
+          <v-btn @click="saveResv(resvTab, false)" :disabled="resvPopupData.menu === ''" icon="mdi-content-save"
+            variant="text"></v-btn>
           <v-btn @click="deleteResv(resvTab)" :disabled="resvPopupData.key === -1 && resvTab === 'menu'"
             icon="mdi-delete" variant="text"></v-btn>
           <v-btn @click="isResvPopup = false" icon="mdi-close-thick"></v-btn>
