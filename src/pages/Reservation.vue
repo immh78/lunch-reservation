@@ -35,6 +35,7 @@ const isRestaurantPopup = ref(false);
 const isRestaurantAdd = ref(false);
 
 const isBlockPopup = ref(false);
+const isSaveNotice = ref(false);
 
 const resvTab = ref('');
 
@@ -389,6 +390,8 @@ async function saveResv(tab, recp) {
       }
 
       await selectReservation();
+
+      isResvPopup.value = false;
     } else {
       return;
     }
@@ -409,7 +412,8 @@ async function saveResv(tab, recp) {
   }
 
   await selectRestaurant();
-  isResvPopup.value = false;
+  isSaveNotice.value = true; // 저장 완료 알림 표시  
+  
 }
 
 
@@ -760,6 +764,8 @@ onMounted(async () => {
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-snackbar v-model="isSaveNotice">저장 완료!</v-snackbar>
   </v-app>
 </template>
 
