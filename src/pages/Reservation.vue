@@ -113,7 +113,7 @@ async function shareResv() {
   });
 
   // 합계 계산
-  const total = prepayPopupData.value.reduce((sum, item) => sum + item.amount, 0);
+  const total = prepayPopupData.value.reduce((sum, item) => sum + Number(item.amount), 0);
   prepayText += '--------------------\n';
   prepayText += `합계     ${formatCurrency(total).padStart(7)}`;
 
