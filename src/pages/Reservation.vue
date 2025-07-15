@@ -677,7 +677,7 @@ onMounted(async () => {
                   <v-text-field v-model="item.date" variant="plain" type="date" />
                 </template>
                 <template #item.amount="{ item }">
-                  <v-text-field v-model="item.amount" variant="plain" type="number" />
+                  <v-text-field v-model="item.amount" variant="plain" type="number" autofocus/>
                 </template>
                 <template #item.delete="{ item, index }">
                   <v-btn icon="mdi-delete" variant="text" @click="onClickDelPrepay(index)" />
