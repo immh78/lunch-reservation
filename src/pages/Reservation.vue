@@ -528,7 +528,7 @@ function openListPopup(item) {
 }
 
 function onClickAddPrepay() {
-  prepayPopupData.value.push({ "amount": 0, "date": getFormatedDate(getToday()) });
+  prepayPopupData.value.push({ "amount": null, "date": getFormatedDate(getToday()) });
 }
 
 
