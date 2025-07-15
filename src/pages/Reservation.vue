@@ -114,15 +114,15 @@ async function shareResv() {
 
   // 합계 계산
   const total = prepayPopupData.value.reduce((sum, item) => sum + Number(item.amount), 0);
-  prepayText += '- - - - - - - - - - -\n';
+  prepayText += '──────────\n';
   prepayText += `합계     ${formatCurrency(total).padStart(7)}`;
 
   const content = `
-──────────
+━━━━━━━━━━
 ■ 메뉴 : ${resvPopupData.value.menu}
 ■ 가격 : ${formatCurrency(resvPopupData.value.cost)}
 ■ 예약일 : ${formatKoreanDate(resvPopupData.value.resvDate)}
-──────────
+━━━━━━━━━━
 
 □ 선결제
 ${prepayText}`
