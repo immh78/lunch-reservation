@@ -119,9 +119,9 @@ async function shareResv() {
 
   const content = `
   
-□ 메뉴 : ${resvPopupData.value.menu}
-□ 가격 : ${formatCurrency(resvPopupData.value.cost)}
-□ 예약일 : ${formatKoreanDate(resvPopupData.value.resvDate)}
+■ 메뉴 : ${resvPopupData.value.menu}
+■ 가격 : ${formatCurrency(resvPopupData.value.cost)}
+■ 예약일 : ${formatKoreanDate(resvPopupData.value.resvDate)}
 
 □ 선결제
 ${prepayText}`
