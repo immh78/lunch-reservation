@@ -40,10 +40,10 @@ const isSaveNotice = ref(false);
 const resvTab = ref('');
 
 const appMenu = [
-  { title: {icon: 'mdi-food', text :'점심 선택'}, action: nextLunch },
-  { title: {icon: 'mdi-plus', text: '식당 등록'}, action: addRestraurant },
-  { title: {icon: 'mdi-playlist-edit', text: '식당목록 관리'}, action: setRestraurantList },
-  { title: {icon: 'mdi-logout', text: '로그아웃' }, action: logout }
+  { title: { icon: 'mdi-food', text: '점심 선택' }, action: nextLunch },
+  { title: { icon: 'mdi-plus', text: '식당 등록' }, action: addRestraurant },
+  { title: { icon: 'mdi-playlist-edit', text: '식당목록 관리' }, action: setRestraurantList },
+  { title: { icon: 'mdi-logout', text: '로그아웃' }, action: logout }
 ];
 
 const headerPrepayment = [
@@ -127,7 +127,7 @@ async function shareResv() {
 □ 선결제
 ${prepayText}`
 
-console.log("공유 내용", content);
+  console.log("공유 내용", content);
 
   if (navigator.share) {
     await navigator.share({
@@ -305,6 +305,10 @@ function onClickRestaurant(item) {
     })
   }
 
+  prepayPopupData.value.sort((a, b) => {
+    return b.date.localeCompare(a.date);
+  });
+
   console.log("resvPopupData", resvPopupData.value);
   console.log("prepayPopupData", prepayPopupData.value);
 
@@ -417,7 +421,7 @@ async function saveResv(tab, recp) {
 
   await selectRestaurant();
   isSaveNotice.value = true; // 저장 완료 알림 표시  
-  
+
 }
 
 
@@ -528,7 +532,7 @@ function openListPopup(item) {
 }
 
 function onClickAddPrepay() {
-  prepayPopupData.value.push({ "amount": null, "date": getFormatedDate(getToday()) });
+  prepayPopupData.value.unshift({ "amount": null, "date": getFormatedDate(getToday()) });
 }
 
 
@@ -585,7 +589,8 @@ onMounted(async () => {
             <v-btn icon="mdi-dots-vertical" variant="text" v-bind="props"></v-btn>
           </template>
           <v-list>
-            <v-list-item v-for="(menu, i) in appMenu" :key="i" :value="i" @click="menu.action" :prepend-icon="menu.title.icon">
+            <v-list-item v-for="(menu, i) in appMenu" :key="i" :value="i" @click="menu.action"
+              :prepend-icon="menu.title.icon">
               <v-list-item-title>{{ menu.title.text }}</v-list-item-title>
             </v-list-item>
           </v-list>
@@ -631,8 +636,6 @@ onMounted(async () => {
         <template #item.prepay="{ item }">
           <span v-if="item.cost > 0">{{ item.prepay.toLocaleString('ko-KR') }}</span>
         </template>
-
-
       </v-data-table>
     </v-main>
 
@@ -676,8 +679,8 @@ onMounted(async () => {
                 <template #item.date="{ item }">
                   <v-text-field v-model="item.date" variant="plain" type="date" />
                 </template>
-                <template #item.amount="{ item }">
-                  <v-text-field v-model="item.amount" variant="plain" type="number" autofocus/>
+                <template #item.amount="{ item, index }">
+                  <v-text-field v-model="item.amount" variant="plain" type="number" :autofocus="index === 0 ? true : false"/>
                 </template>
                 <template #item.delete="{ item, index }">
                   <v-btn icon="mdi-delete" variant="text" @click="onClickDelPrepay(index)" />
@@ -788,4 +791,4 @@ onMounted(async () => {
   z-index: 1050;
   /* 다른 요소 위에 표시되도록 설정 */
 }
-</style> 
+</style>
