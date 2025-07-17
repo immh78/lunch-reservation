@@ -631,10 +631,10 @@ onMounted(async () => {
           </div>
         </template>
         <template #item.cost="{ item }">
-          <span v-if="item.cost > 0">{{ item.cost.toLocaleString('ko-KR') }}</span>
+          <span v-if="item.cost > 0" :style="{color: item.isReceipt ? 'silver' : 'black'}">{{ item.cost.toLocaleString('ko-KR') }}</span>
         </template>
         <template #item.prepay="{ item }">
-          <span v-if="item.cost > 0">{{ item.prepay.toLocaleString('ko-KR') }}</span>
+          <span v-if="item.cost > 0" :style="{color: item.isReceipt ? 'silver' : 'black'}">{{ item.prepay.toLocaleString('ko-KR') }}</span>
         </template>
       </v-data-table>
     </v-main>
@@ -679,7 +679,7 @@ onMounted(async () => {
                 <template #item.date="{ item }">
                   <v-text-field v-model="item.date" variant="plain" type="date" />
                 </template>
-                <template #item.amount="{ item, index }">
+                <template #item.amount="{ item }">
                   <v-text-field v-model="item.amount" variant="plain" type="number"/>
                 </template>
                 <template #item.delete="{ item, index }">
