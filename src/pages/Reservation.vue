@@ -101,7 +101,7 @@ function addRestraurant() {
 }
 
 function formatCurrency(amount) {
-  return amount.toLocaleString('ko-KR') + '원';
+  return Number(amount).toLocaleString('ko-KR') + '원';
 }
 
 

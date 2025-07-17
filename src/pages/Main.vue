@@ -229,14 +229,14 @@ function menuList(id) {
 }
 
 function saveListMenu(item) {
-  visit.value = item;
+  visit.value = {...item};
   visit.value.date = getToday();
 
   saveMenu();
   isListPopup.value = false;
 }
 async function saveMenu() {
-  //console.log("menu", visit.value);
+  //console.log("menu", visitLog.value[visitLog.value.length - 1], getToday());
 
   if (visitLog.value[visitLog.value.length - 1].date === getToday()) {
     visitLog.value.pop();
