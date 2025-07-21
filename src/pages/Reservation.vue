@@ -607,7 +607,7 @@ onMounted(async () => {
         hide-default-footer items-per-page="-1" :show-items-per-page="false">
         <template v-slot:item.name="{ item }">
           <v-btn :variant="item.lastDate === getToday() ? 'flat' : 'tonal'"
-            :color="blockRestaurant.includes(item.id) ? 'grey-darken-3' : 'primary'" class="px-1"
+            :color="item.isReceipt ? 'primary' : 'success'" class="px-1"
             @click="onClickRestaurant(item)"><v-icon>{{ restaurantKind[item.kind] }}</v-icon> {{ item.name }}</v-btn>
         </template>
         <template v-slot:item.resvMenu="{ item }">
