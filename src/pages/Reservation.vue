@@ -131,7 +131,6 @@ ${prepayText}`
 
   if (navigator.share) {
     await navigator.share({
-      title: '포장주문 및 선결제 내역',
       text: content
     });
   } else {
