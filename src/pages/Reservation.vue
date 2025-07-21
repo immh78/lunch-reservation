@@ -281,13 +281,10 @@ function getNewKey(arr) {
 }
 
 function onClickRestaurant(item) {
-  console.log("popup", item);
-
-  item.isReceipt
-
+  
   resvPopupData.value = {
     "cost": item.cost,
-    "isReceipt": false,
+    "isReceipt": item.isReceipt,
     "key": item.isReceipt ? -1 : item.resvKey,
     "menu": item.resvMenu,
     "restaurantId": item.id,
@@ -692,7 +689,7 @@ onMounted(async () => {
         <v-card-actions>
           <v-btn @click="shareResv()" icon="mdi-share-variant" variant="text"></v-btn>
           <v-spacer></v-spacer>
-          <v-btn @click="saveResv(resvTab, true)" :disabled="resvTab !== 'menu'" icon="mdi-package-variant-closed-check"
+          <v-btn @click="saveResv(resvTab, true)" :disabled="resvTab !== 'menu' || resvPopupData.isReceipt" icon="mdi-package-variant-closed-check"
             variant="text"></v-btn>
           <v-btn @click="saveResv(resvTab, false)" :disabled="resvPopupData.menu === ''" icon="mdi-content-save"
             variant="text"></v-btn>
