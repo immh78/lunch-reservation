@@ -606,8 +606,8 @@ onMounted(async () => {
       <v-data-table :headers="headers" :items="restaurant" no-data-text="조회중입니다." loading-text="조회중입니다."
         hide-default-footer items-per-page="-1" :show-items-per-page="false">
         <template v-slot:item.name="{ item }">
-          <v-btn :variant="item.lastDate === getToday() ? 'flat' : 'tonal'"
-            :color="item.isReceipt ? 'primary' : 'success'" class="px-1"
+          <v-btn :variant="item.isReceipt ? 'tonal' : 'flat'"
+            color="primary" class="px-1"
             @click="onClickRestaurant(item)"><v-icon>{{ restaurantKind[item.kind] }}</v-icon> {{ item.name }}</v-btn>
         </template>
         <template v-slot:item.resvMenu="{ item }">
