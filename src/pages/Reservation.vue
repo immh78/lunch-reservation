@@ -29,6 +29,7 @@ const listPopupTitle = ref('');
 const listPopupSelectable = ref(false);
 const listPopupData = ref([]);
 const uid = ref("");
+const sumCost = ref(0);
 
 const isLoading = ref(false);
 const isRestaurantPopup = ref(false);
@@ -200,6 +201,9 @@ async function selectRestaurant() {
           // 둘 다 값이 있으면 내림차순 (역순)
           return bDate.localeCompare(aDate);
         });
+
+        sumCost.value = restaurant.value.filter(item => item.isReceipt === false)
+                                        .reduce((sum, item) => sum + (item.cost - item.prepay), 0);
 
       }
     })
@@ -599,6 +603,7 @@ onMounted(async () => {
           </v-icon>
         </span>
         포장 예약
+        <span class="semi-transparent-text"> {{ sumCost.toLocaleString('ko-KR') }}원</span>
       </v-app-bar-title>
     </v-app-bar>
     <v-main>
@@ -786,5 +791,9 @@ onMounted(async () => {
   /* 화면 우측에서 16px 왼쪽 */
   z-index: 1050;
   /* 다른 요소 위에 표시되도록 설정 */
+}
+
+.semi-transparent-text {
+  opacity: 0.5; /* 50% 투명도 */
 }
 </style>
