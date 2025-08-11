@@ -393,7 +393,15 @@ async function saveResv(tab, recp) {
         console.error("Error saving data:", err);
       }
 
+      try {
+        const dbRefDel = firebaseRef(database, `lunch-resv/prepayment/${uid.value}/${resvPopupData.value.restaurantId}`);
+        await remove(dbRefDel); // key 업데이트
+      } catch (err) {
+        console.error("Error delete :", err);
+      }
+
       await selectReservation();
+      await selectPrepayment();
 
       isResvPopup.value = false;
     } else {
@@ -522,7 +530,7 @@ function openListPopup(item) {
   listPopupData.value = reservation.value.filter(log => log.restaurantId === item.id)
     .sort((a, b) => b.resvDate.localeCompare(a.resvDate)); // 최신 순 정렬
 
-  console.log("listPopupData", listPopupData.value);
+  //console.log("listPopupData", listPopupData.value);
 
   isListPopup.value = true;
 }
