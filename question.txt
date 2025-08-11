@@ -1,15 +1,187 @@
-list title에 icon 추가
+list = [
+    {
+        "kind": "한식",
+        "menuUrl": "https://m.place.naver.com/restaurant/20489814/menu/list?entry=plt",
+        "name": "황태마을",
+        "telNo": "055-636-8399",
+        "id": "HWANTEA",
+        "resvMenu": "코다리시래기찜(소)",
+        "resvDate": "20250725",
+        "cost": 25000,
+        "isReceipt": false,
+        "resvKey": 6,
+        "prepay": 0
+    },
+    {
+        "kind": "분식",
+        "menuUrl": "https://m.place.naver.com/restaurant/20707009/menu/list?entry=pll",
+        "name": "명가충무김밥",
+        "telNo": "055-633-7731",
+        "id": "MYUNGACM",
+        "resvMenu": "충무김밥 8인분",
+        "resvDate": "20250725",
+        "cost": 52000,
+        "isReceipt": false,
+        "resvKey": 4,
+        "prepay": 32000
+    },
+    {
+        "kind": "베이커리",
+        "menuUrl": "https://www.paris.co.kr/products/",
+        "name": "파리바게트(장평)",
+        "telNo": "0507-2093-6154",
+        "id": "PARIS",
+        "resvMenu": "우유 x 2",
+        "resvDate": "20250725",
+        "cost": 8200,
+        "isReceipt": false,
+        "resvKey": 5,
+        "prepay": 0
+    },
+    {
+        "kind": "한식",
+        "menuUrl": "https://m.place.naver.com/restaurant/1294357234/menu/list",
+        "name": "경원해물찜(장평점)",
+        "telNo": "0507-1326-6655",
+        "id": "GYUNGWON",
+        "resvMenu": "해물찜(소)2단계",
+        "resvDate": "20250711",
+        "cost": 40000,
+        "isReceipt": true,
+        "resvKey": 1,
+        "prepay": 0
+    },
+    {
+        "kind": "한식",
+        "menuUrl": "https://m.place.naver.com/restaurant/1539348093/menu/list?entry=plt",
+        "name": "생생게장백반",
+        "telNo": "0507-1411-6617",
+        "id": "SENGSENG",
+        "resvMenu": "양념게장",
+        "resvDate": "20250711",
+        "cost": 40000,
+        "isReceipt": true,
+        "resvKey": 0,
+        "prepay": 0
+    },
+    {
+        "kind": "한식",
+        "menuUrl": "https://search.pstatic.net/common/?src=https%3A%2F%2Fpup-review-phinf.pstatic.net%2FMjAyNTAxMDlfMTEg%2FMDAxNzM2NDAxNTA0NjUw.-sTi8d3Vufop5bxtv_3Av_na1nGClJjJrN2dBrGjn58g.1F7-2oKqW2YnVzy60py1TCYDFfl5nEFuW7AkWcAec8kg.JPEG%2F1000037219.jpg.jpg%3Ftype%3Dw1500_60_sharpen",
+        "name": "청진동 감자탕",
+        "telNo": "055-633-0399",
+        "id": "CHUNGGAMJA",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true,
+        "resvKey": -1,
+        "prepay": 0
+    },
+    {
+        "kind": "한식",
+        "menuUrl": "https://m.blog.naver.com/soowon0824/223342870180?view=img_6",
+        "name": "가야밀면돈가스",
+        "telNo": "055-633-3457",
+        "id": "GAYA",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true,
+        "resvKey": -1,
+        "prepay": 0
+    },
+    {
+        "kind": "한식",
+        "menuUrl": "https://m.place.naver.com/restaurant/1623383106/menu/list?entry=pll",
+        "name": "계룡산숯불갈비",
+        "telNo": "0507-1352-7803",
+        "id": "GEARONGSAN",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true,
+        "resvKey": -1,
+        "prepay": 0
+    },
+    {
+        "kind": "한식",
+        "menuUrl": "https://naver.me/IFF0fsFb",
+        "name": "코다리냉면",
+        "telNo": "0507-1332-1966",
+        "id": "KODARI",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true,
+        "resvKey": -1,
+        "prepay": 0
+    },
+    {
+        "kind": "한식",
+        "menuUrl": "https://m.place.naver.com/restaurant/15881389/menu/list?entry=plt",
+        "name": "남천해물전문점",
+        "telNo": "055-633-5862",
+        "id": "NAMCHUN",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true,
+        "resvKey": -1,
+        "prepay": 0
+    },
+    {
+        "kind": "베이커리",
+        "menuUrl": "https://map.naver.com/p/search/%EC%98%AC%EB%A6%AC%EB%B8%8C%20%EB%B8%8C%EB%9F%B0%EC%B9%98/place/1698284545?c=15.00,0,0,0,dh&placePath=/home?from=map&fromPanelNum=2&timestamp=202507150706&locale=ko&svcName=map_pcv5&searchText=%EC%98%AC%EB%A6%AC%EB%B8%8C%20%EB%B8%8C%EB%9F%B0%EC%B9%98&fromPanelNum=2&timestamp=202507150705&locale=ko&svcName=map_pcv5&searchText=%EC%98%AC%EB%A6%AC%EB%B8%8C%20%EB%B8%8C%EB%9F%B0%EC%B9%98&from=map",
+        "name": "올리브브랜치",
+        "telNo": "0507-2093-2867",
+        "id": "OLIVE",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true,
+        "resvKey": -1,
+        "prepay": 0
+    },
+    {
+        "kind": "한식",
+        "menuUrl": "https://map.naver.com/p/search/%EC%83%9D%EC%84%A0%EA%B5%AC%EC%9D%B4%20%EA%BD%83%EA%B2%8C%EC%9E%A5%20%EC%A0%84%EB%AC%B8%EC%A0%90%20%EA%B1%B0%EC%A0%9C/place/1161419199?c=15.00,0,0,0,dh&placePath=/menu?entry=bmp&from=map&fromPanelNum=2&timestamp=202507101032&locale=ko&svcName=map_pcv5&searchText=%EC%83%9D%EC%84%A0%EA%B5%AC%EC%9D%B4%20%EA%BD%83%EA%B2%8C%EC%9E%A5%20%EC%A0%84%EB%AC%B8%EC%A0%90%20%EA%B1%B0%EC%A0%9C&from=map&fromPanelNum=2&timestamp=202507101032&locale=ko&svcName=map_pcv5&searchText=%EC%83%9D%EC%84%A0%EA%B5%AC%EC%9D%B4%20%EA%BD%83%EA%B2%8C%EC%9E%A5%20%EC%A0%84%EB%AC%B8%EC%A0%90%20%EA%B1%B0%EC%A0%9C",
+        "name": "생선구이 간장게장",
+        "telNo": "0507-1314-9949",
+        "id": "SENGSUNGG",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true,
+        "resvKey": -1,
+        "prepay": 0
+    },
+    {
+        "kind": "베이커리",
+        "menuUrl": "ㅂ",
+        "name": "뚜레쥬르 유로스카이",
+        "telNo": "055-634-1025",
+        "id": "TLJ",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true,
+        "resvKey": -1,
+        "prepay": 0
+    },
+    {
+        "kind": "한식",
+        "menuUrl": "https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20240902_183%2F1725239971747XJuoV_JPEG%2F1725239943242.jpg",
+        "name": "토담추어탕",
+        "telNo": "055-633-8858",
+        "id": "TODAM",
+        "resvMenu": "",
+        "resvDate": "",
+        "cost": 0,
+        "isReceipt": true,
+        "resvKey": -1,
+        "prepay": 0
+    }
+]
 
-const appMenu = [
-  { title: {icon: 'mdi-cog', text :'점심 선택'}, action: nextLunch },
-  { title: {icon: 'mdi-food', text: '식당 등록'}, action: addRestraurant },
-  { title: {icon: 'mdi-playlist-edit', text: '식당목록 관리'}, action: setRestraurantList },
-  { title: {icon: 'mdi-logout', text: '로그아웃' }, action: logout }
-];
 
-
-<v-list>
-  <v-list-item v-for="(menu, i) in appMenu" :key="i" :value="i" @click="menu.action">
-    <v-list-item-title>{{ menu.title }}</v-list-item-title>
-  </v-list-item>
-</v-list>
+isReceipt가 false일때 (cost - prepay)의 값을 모두 sum한값을 추출
