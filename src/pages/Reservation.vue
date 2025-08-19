@@ -622,7 +622,7 @@ onMounted(async () => {
       if (!error && result && result.event === 'success') {
         const info = result.info;
         lastPublicId.value = info.public_id;
-        restaurantInfo.menuImgId = lastPublicId.value;        
+        restaurantInfo.value.menuImgId = lastPublicId.value;        
       } else if (result && result.event === 'close') {
         lastPublicId.value = ''; // 업로드 취소 시 초기화
       } else if (error) {
