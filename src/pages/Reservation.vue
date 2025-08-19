@@ -6,6 +6,19 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { database, ref as firebaseRef, get, set, update, remove } from "../config/firebase";
 import { useRouter } from 'vue-router';
+import { Cloudinary } from '@cloudinary/url-gen'
+import { AdvancedImage, responsive, placeholder } from '@cloudinary/vue'
+
+/* Cloudinary 설정 */
+const cloudName = process.env.VITE_CLOUDINARY_CLOUD_NAME;
+const uploadPreset = process.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+const lastPublicId = ref('');
+const cld = new Cloudinary({ cloud: { cloudName } });
+const preview = ref(null);
+
+let widget;
+//------------------------------------------------
 
 const userStore = useUserStore();
 const router = useRouter();
@@ -37,6 +50,7 @@ const isRestaurantAdd = ref(false);
 
 const isBlockPopup = ref(false);
 const isSaveNotice = ref(false);
+const isMenuImgPopup = ref(false);
 
 const resvTab = ref('');
 
@@ -313,7 +327,11 @@ function onClickRestaurant(item) {
   console.log("prepayPopupData", prepayPopupData.value);
 
   resvPopupRef.value.menuUrl = item.menuUrl;
-  resvPopupRef.value.name = item.name;
+  resvPopupRef.value.menuImgId = item.menuImgId;
+  resvPopupRef.value.name = item.name;  
+
+  console.log("resvPopupRef.value.menuImgId", resvPopupRef.value.menuImgId);
+  console.log("preview.value", preview.value);
 
   isResvPopup.value = true;
 }
@@ -440,7 +458,8 @@ async function saveRestaurant() {
     "name": restaurantInfo.value.name,
     "telNo": restaurantInfo.value.telNo,
     "menuUrl": restaurantInfo.value.menuUrl,
-    "kind": restaurantInfo.value.kind
+    "kind": restaurantInfo.value.kind,
+    "menuImgId": restaurantInfo.value.menuImgId,
   }
 
   try {
@@ -569,11 +588,48 @@ function toUpper(val) {
   restaurantInfo.value.id = val.toUpperCase()
 }
 
+function onClickMenuImgPopup() {
+  preview.value = cld.image(resvPopupRef.value.menuImgId).format('auto').quality('auto')
+  isMenuImgPopup.value = true;
+}
+
+function openWidget() {
+  widget && widget.open();
+}
+
 onMounted(async () => {
   uid.value = userStore.user.uid;
 
   await selectBlockRestaurant()
   await selectData();
+
+  // 글로벌 위젯 객체
+  widget = window.cloudinary?.createUploadWidget(
+    {
+      cloudName: cloudName,
+      uploadPreset: uploadPreset,
+      sources: ['local', 'url', 'camera'],
+      multiple: false,
+      folder: 'images',
+      maxFileSize: 5_000_000,
+      cropping: false,
+      clientAllowedFormats: ['jpg', 'jpeg', 'png', 'webp'],
+      showAdvancedOptions: false,
+      showPoweredBy: false,
+      styles: { palette: { windowBorder: '#ddd' } }
+    },
+    (error, result) => {
+      if (!error && result && result.event === 'success') {
+        const info = result.info;
+        lastPublicId.value = info.public_id;
+        restaurantInfo.menuImgId = lastPublicId.value;        
+      } else if (result && result.event === 'close') {
+        lastPublicId.value = ''; // 업로드 취소 시 초기화
+      } else if (error) {
+        lastPublicId.value = ''; // 오류 시 초기화
+      }
+    }
+  );
 
   console.log("blockRestaurant", blockRestaurant.value);
   console.log("restaurant", restaurant.value);
@@ -657,9 +713,11 @@ onMounted(async () => {
         <v-card-title class="d-flex align-center">{{ resvPopupRef.name }}
           <v-icon class="ml-1" size="18px" @click="onClickEditRestaurant()">mdi-pencil</v-icon>
           <v-spacer></v-spacer>
-          <v-btn variant="text" :href="resvPopupRef.menuUrl" target="_blank" rel="noopener">
-            <v-icon>mdi-feature-search-outline</v-icon>
-          </v-btn>
+          <v-btn v-if="resvPopupRef.menuImgId" variant="text" @click="onClickMenuImgPopup()"
+            icon="mdi-feature-search-outline" />
+          <v-btn v-else variant="text" :href="resvPopupRef.menuUrl" target="_blank" rel="noopener"
+            icon="mdi-feature-search-outline" />
+
         </v-card-title>
         <v-tabs v-model="resvTab" align-tabs="center" color="deep-purple-accent-4">
           <v-tab value="menu">메뉴</v-tab>
@@ -772,15 +830,30 @@ onMounted(async () => {
           <v-combobox v-model="restaurantInfo.kind" label="종류" :items="Object.keys(restaurantKind)"
             variant="outlined"></v-combobox>
           <v-text-field v-model="restaurantInfo.telNo" label="전화번호" variant="outlined"></v-text-field>
-          <v-text-field v-model="restaurantInfo.menuUrl" label="메뉴 URL" variant="outlined" class="menu-url-field" />
+          <v-row>
+            <v-col cols="10">
+              <v-text-field v-if="restaurantInfo.menuImgId" v-model="restaurantInfo.menuImgId" label="메뉴 이미지 ID" variant="outlined" class="menu-url-field" />
+              <v-text-field v-else v-model="restaurantInfo.menuUrl" label="메뉴 URL" variant="outlined" class="menu-url-field" />
+            </v-col>
+            <v-col cols="2" class="d-flex justify-center align-center">
+              <v-btn @click="openWidget" icon="mdi-camera" variant="text"></v-btn>
+            </v-col>
+          </v-row>
         </v-card-text>
         <v-card-actions>
           <v-btn icon="mdi-cancel" :color="blockRestaurant.includes(restaurantInfo.id) ? 'red' : 'black'"
             @click="blockRestaurant.includes(restaurantInfo.id) ? removeBlockRestaurant(restaurantInfo.id) : addBlockRestaurant()"></v-btn>
           <v-spacer></v-spacer>
+
           <v-btn @click="saveRestaurant()" icon="mdi-check-bold"></v-btn>
           <v-btn @click="isRestaurantPopup = false" icon="mdi-close-thick"></v-btn>
         </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="isMenuImgPopup" max-width="600px">
+      <v-card>
+        <AdvancedImage :cldImg="preview" :plugins="[responsive(), placeholder({ mode: 'blur' })]"
+        class="max-w-full rounded-lg shadow" />
       </v-card>
     </v-dialog>
 

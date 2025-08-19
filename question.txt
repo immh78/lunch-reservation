@@ -1,3 +1,58 @@
+import { Cloudinary } from '@cloudinary/url-gen'
+import { AdvancedImage, responsive, placeholder } from '@cloudinary/vue'
+
+/* Cloudinary 설정 */
+const cloudName = process.env.VITE_CLOUDINARY_CLOUD_NAME;
+const uploadPreset = process.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+const lastPublicId = ref('');
+const cld = new Cloudinary({ cloud: { cloudName } });
+const preview = ref(null);
+
+let widget;
+
+function openWidget() {
+  widget && widget.open();
+  //console.log("lastPublicId.value", lastPublicId.value)
+}
+
+onMounted(async () => {
+  uid.value = userStore.user.uid;
+
+  await selectBlockRestaurant()
+  await selectData();
+
+  // 글로벌 위젯 객체
+  widget = window.cloudinary?.createUploadWidget(
+    {
+      cloudName: cloudName,
+      uploadPreset: uploadPreset,
+      sources: ['local', 'url', 'camera'],
+      multiple: false,
+      folder: 'images',
+      maxFileSize: 5_000_000,
+      cropping: false,
+      clientAllowedFormats: ['jpg', 'jpeg', 'png', 'webp'],
+      showAdvancedOptions: false,
+      showPoweredBy: false,
+      styles: { palette: { windowBorder: '#ddd' } }
+    },
+    (error, result) => {
+      if (!error && result && result.event === 'success') {
+        const info = result.info
+        lastPublicId.value = info.public_id        
+      } else if (result && result.event === 'close') {
+        lastPublicId.value = ''; // 업로드 취소 시 초기화
+      } else if (error) {
+        lastPublicId.value = ''; // 오류 시 초기화
+      }
+    }
+  );
+
+widget에서 정상적으로 이미지를 업로드 했을 경우에만 save() 함수를 호출하게 하려면?
+
+
+
 list = [
     {
         "kind": "한식",
