@@ -8,10 +8,11 @@ import { database, ref as firebaseRef, get, set, update, remove } from "../confi
 import { useRouter } from 'vue-router';
 import { Cloudinary } from '@cloudinary/url-gen'
 import { AdvancedImage, responsive, placeholder } from '@cloudinary/vue'
+import RestaurantPopup from '../components/RestaurantPopup.vue'
 
 /* Cloudinary 설정 */
-const cloudName = process.env.VITE_CLOUDINARY_CLOUD_NAME;
-const uploadPreset = process.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
 
 const lastPublicId = ref('');
 const cld = new Cloudinary({ cloud: { cloudName } });
@@ -328,10 +329,9 @@ function onClickRestaurant(item) {
 
   resvPopupRef.value.menuUrl = item.menuUrl;
   resvPopupRef.value.menuImgId = item.menuImgId;
-  resvPopupRef.value.name = item.name;  
+  resvPopupRef.value.name = item.name;
 
-  console.log("resvPopupRef.value.menuImgId", resvPopupRef.value.menuImgId);
-  console.log("preview.value", preview.value);
+  console.log("resvPopupRef", resvPopupRef.value);
 
   isResvPopup.value = true;
 }
@@ -388,8 +388,6 @@ async function deleteResv(tab) {
     prepayPopupData.value = [];
   }
 }
-
-
 
 async function saveResv(tab, recp) {
   //console.log("menu", resv.value);
@@ -452,27 +450,6 @@ async function saveResv(tab, recp) {
 
 }
 
-
-async function saveRestaurant() {
-  const data = {
-    "name": restaurantInfo.value.name,
-    "telNo": restaurantInfo.value.telNo,
-    "menuUrl": restaurantInfo.value.menuUrl || '',
-    "kind": restaurantInfo.value.kind,
-    "menuImgId": restaurantInfo.value.menuImgId || '',
-  }
-
-  try {
-    const dbRef = firebaseRef(database, "lunch-resv/restaurant/" + restaurantInfo.value.id);
-    await update(dbRef, data); // 데이터를 저장
-  } catch (err) {
-    console.error("Error saving data:", err);
-  }
-
-  selectRestaurant();
-  isRestaurantPopup.value = false;
-}
-
 async function selectData() {
   isLoading.value = true;          // <-- 로딩 시작
   try {
@@ -498,7 +475,6 @@ async function selectPrepayment() {
       console.error("Error fetching data:", err);
     });
 }
-
 
 async function selectBlockRestaurant() {
   blockRestaurant.value = [];
@@ -589,12 +565,27 @@ function toUpper(val) {
 }
 
 function onClickMenuImgPopup() {
+  console.log("resvPopupRef.value.menuImgId", resvPopupRef.value.menuImgId)
+
   preview.value = cld.image(resvPopupRef.value.menuImgId).format('auto').quality('auto')
+
+  console.log("preview.value", preview.value);
+
   isMenuImgPopup.value = true;
+
+  
 }
 
-function openWidget() {
-  widget && widget.open();
+function onRestaurantPreview({ menuImgId, menuUrl }) {
+  console.log("onRestaurantPreview", menuImgId, menuUrl);
+
+  if (menuImgId) {
+    const url = cld.image(menuImgId).format('auto').quality('auto').toURL()
+    console.log("url", url);
+    window.open(url, '_blank', 'noopener')
+  } else if (menuUrl) {
+    window.open(menuUrl, '_blank', 'noopener')
+  }
 }
 
 onMounted(async () => {
@@ -603,42 +594,12 @@ onMounted(async () => {
   await selectBlockRestaurant()
   await selectData();
 
-  // 글로벌 위젯 객체
-  widget = window.cloudinary?.createUploadWidget(
-    {
-      cloudName: cloudName,
-      uploadPreset: uploadPreset,
-      sources: ['local', 'url', 'camera'],
-      multiple: false,
-      folder: 'images',
-      maxFileSize: 5_000_000,
-      cropping: false,
-      clientAllowedFormats: ['jpg', 'jpeg', 'png', 'webp'],
-      showAdvancedOptions: false,
-      showPoweredBy: false,
-      styles: { palette: { windowBorder: '#ddd' } }
-    },
-    (error, result) => {
-      if (!error && result && result.event === 'success') {
-        const info = result.info;
-        lastPublicId.value = info.public_id;
-        restaurantInfo.value.menuImgId = lastPublicId.value;        
-      } else if (result && result.event === 'close') {
-        lastPublicId.value = ''; // 업로드 취소 시 초기화
-      } else if (error) {
-        lastPublicId.value = ''; // 오류 시 초기화
-      }
-    }
-  );
-
   console.log("blockRestaurant", blockRestaurant.value);
   console.log("restaurant", restaurant.value);
   console.log("restaurantData", restaurantData.value);
   console.log("reservation", reservation.value);
   console.log("prepayment", prepayment.value);
 });
-
-
 
 //console.log('user', user);
 </script>
@@ -713,11 +674,8 @@ onMounted(async () => {
         <v-card-title class="d-flex align-center">{{ resvPopupRef.name }}
           <v-icon class="ml-1" size="18px" @click="onClickEditRestaurant()">mdi-pencil</v-icon>
           <v-spacer></v-spacer>
-          <v-btn v-if="resvPopupRef.menuImgId" variant="text" @click="onClickMenuImgPopup()"
+          <v-btn variant="text" @click="onRestaurantPreview({menuImgId:resvPopupRef.menuImgId, menuUrl:resvPopupRef.menuUrl});"
             icon="mdi-feature-search-outline" />
-          <v-btn v-else variant="text" :href="resvPopupRef.menuUrl" target="_blank" rel="noopener"
-            icon="mdi-feature-search-outline" />
-
         </v-card-title>
         <v-tabs v-model="resvTab" align-tabs="center" color="deep-purple-accent-4">
           <v-tab value="menu">메뉴</v-tab>
@@ -820,42 +778,10 @@ onMounted(async () => {
 
     </v-dialog>
 
-    <v-dialog v-model="isRestaurantPopup" max-width="600px">
-      <v-card>
-        <v-card-title>{{ isRestaurantAdd ? "식당 등록" : restaurantInfo.id }}</v-card-title>
-        <v-card-text>
-          <v-text-field v-if="isRestaurantAdd" v-model="restaurantInfo.id" label="식당 ID" variant="outlined"
-            :rules="[rules.required, rules.uppercase]" @update:model-value="toUpper" />
-          <v-text-field v-model="restaurantInfo.name" label="식당명" variant="outlined" :rules="[rules.required]" />
-          <v-combobox v-model="restaurantInfo.kind" label="종류" :items="Object.keys(restaurantKind)"
-            variant="outlined"></v-combobox>
-          <v-text-field v-model="restaurantInfo.telNo" label="전화번호" variant="outlined"></v-text-field>
-          <v-row>
-            <v-col cols="10">
-              <v-text-field v-if="restaurantInfo.menuImgId" v-model="restaurantInfo.menuImgId" label="메뉴 이미지 ID" variant="outlined" class="menu-url-field" />
-              <v-text-field v-else v-model="restaurantInfo.menuUrl" label="메뉴 URL" variant="outlined" class="menu-url-field" />
-            </v-col>
-            <v-col cols="2" class="d-flex justify-center align-center">
-              <v-btn @click="openWidget" icon="mdi-camera" variant="text"></v-btn>
-            </v-col>
-          </v-row>
-        </v-card-text>
-        <v-card-actions>
-          <v-btn icon="mdi-cancel" :color="blockRestaurant.includes(restaurantInfo.id) ? 'red' : 'black'"
-            @click="blockRestaurant.includes(restaurantInfo.id) ? removeBlockRestaurant(restaurantInfo.id) : addBlockRestaurant()"></v-btn>
-          <v-spacer></v-spacer>
-
-          <v-btn @click="saveRestaurant()" icon="mdi-check-bold"></v-btn>
-          <v-btn @click="isRestaurantPopup = false" icon="mdi-close-thick"></v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <v-dialog v-model="isMenuImgPopup">
-    
-        <AdvancedImage :cldImg="preview" :plugins="[responsive(), placeholder({ mode: 'blur' })]"
-        class="max-w-full rounded-lg shadow" />
-     
-    </v-dialog>
+    <RestaurantPopup v-model="isRestaurantPopup" :is-add="isRestaurantAdd" :restaurant-info="restaurantInfo"
+      :restaurant-kind="restaurantKind" :block-list="blockRestaurant" :uid="uid" :cloud-name="cloudName"
+      :upload-preset="uploadPreset" @saved="selectRestaurant" @block-changed="(list) => { blockRestaurant = list }"
+      @preview="onRestaurantPreview" />
 
     <v-snackbar v-model="isSaveNotice">저장 완료!</v-snackbar>
   </v-app>

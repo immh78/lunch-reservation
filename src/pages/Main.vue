@@ -6,6 +6,20 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { database, ref as firebaseRef, get, set, update, remove } from "../config/firebase";
 import { useRouter } from 'vue-router';
+import { Cloudinary } from '@cloudinary/url-gen'
+import { AdvancedImage, responsive, placeholder } from '@cloudinary/vue'
+import RestaurantPopup from '../components/RestaurantPopup.vue'
+
+/* Cloudinary 설정 */
+const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
+
+const lastPublicId = ref('');
+const cld = new Cloudinary({ cloud: { cloudName } });
+const preview = ref(null);
+
+let widget;
+//------------------------------------------------
 
 const userStore = useUserStore();
 const router = useRouter();
@@ -31,6 +45,7 @@ const uid = ref("");
 const isLoading = ref(false);
 const isRestaurantPopup = ref(false);
 const isRestaurantAdd = ref(false);
+const isMenuImgPopup = ref(false);
 
 const appMenu = [
   { title: {icon: 'mdi-package-variant', text :'포장 예약'}, action: nextReservation },
@@ -210,6 +225,7 @@ function choiceMenu(item) {
 
   menuPopupRef.value.isChoice = item.lastDate === getToday();
   menuPopupRef.value.menuUrl = item.menuUrl;
+  menuPopupRef.value.menuImgId = item.menuImgId;
   menuPopupRef.value.name = item.name;
 
   isMenuPopup.value = true;
@@ -377,6 +393,18 @@ function toUpper(val) {
   restaurantInfo.value.id = val.toUpperCase()
 }
 
+function onRestaurantPreview({ menuImgId, menuUrl }) {
+  console.log("onRestaurantPreview", menuImgId, menuUrl);
+
+  if (menuImgId) {
+    const url = cld.image(menuImgId).format('auto').quality('auto').toURL()
+    console.log("url", url);
+    window.open(url, '_blank', 'noopener')
+  } else if (menuUrl) {
+    window.open(menuUrl, '_blank', 'noopener')
+  }
+}
+
 onMounted(async () => {
   uid.value = userStore.user.uid;
 
@@ -451,9 +479,8 @@ onMounted(async () => {
         <v-card-title class="d-flex align-center">{{ menuPopupRef.name }}
           <v-icon class="ml-1" size="18px" @click="onClickEditRestaurant()">mdi-pencil</v-icon>
           <v-spacer></v-spacer>
-          <v-btn variant="text" :href="menuPopupRef.menuUrl" target="_blank" rel="noopener">
-            <v-icon>mdi-feature-search-outline</v-icon>
-          </v-btn>
+          <v-btn variant="text" @click="onRestaurantPreview({menuImgId:menuPopupRef.menuImgId, menuUrl:menuPopupRef.menuUrl});"
+            icon="mdi-feature-search-outline" />
         </v-card-title>
         <v-card-text>
           <v-combobox v-model="visit.menu" label="메뉴" :items="menuList(visit.restaurantId)"
@@ -488,23 +515,12 @@ onMounted(async () => {
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="isRestaurantPopup" max-width="600px">
-      <v-card>
-        <v-card-title>{{ isRestaurantAdd ? "식당 등록" : restaurantInfo.id }}</v-card-title>
-        <v-card-text>
-          <v-text-field v-if="isRestaurantAdd" v-model="restaurantInfo.id" label="식당 ID" variant="outlined"
-            :rules="[rules.required, rules.uppercase]" @update:model-value="toUpper" />
-          <v-text-field v-model="restaurantInfo.name" label="식당명" variant="outlined" :rules="[rules.required]" />
-          <v-combobox v-model="restaurantInfo.kind" label="종류" :items="Object.keys(restaurantKind)" variant="outlined"></v-combobox>
-          <v-text-field v-model="restaurantInfo.telNo" label="전화번호" variant="outlined"></v-text-field>
-          <v-text-field v-model="restaurantInfo.menuUrl" label="메뉴 URL" variant="outlined" class="menu-url-field" />
-        </v-card-text>
-        <v-card-actions>
-          <v-btn @click="saveRestaurant()" icon="mdi-check-bold"></v-btn>
-          <v-btn @click="isRestaurantPopup = false" icon="mdi-close-thick"></v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+
+    <RestaurantPopup v-model="isRestaurantPopup" :is-add="isRestaurantAdd" :restaurant-info="restaurantInfo"
+      :restaurant-kind="restaurantKind" :block-list="blockRestaurant" :uid="uid" :cloud-name="cloudName"
+      :upload-preset="uploadPreset" @saved="selectRestaurant" @block-changed="(list) => { blockRestaurant = list }"
+      @preview="onRestaurantPreview" />
+
   </v-app>
 </template>
 
