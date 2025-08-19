@@ -203,7 +203,7 @@ async function selectRestaurant() {
         });
 
         sumCost.value = restaurant.value.filter(item => item.isReceipt === false)
-                                        .reduce((sum, item) => sum + (item.cost - item.prepay), 0);
+          .reduce((sum, item) => sum + (item.cost - item.prepay), 0);
 
       }
     })
@@ -284,7 +284,7 @@ function getNewKey(arr) {
 }
 
 function onClickRestaurant(item) {
-  
+
   resvPopupData.value = {
     "cost": item.cost,
     "isReceipt": item.isReceipt,
@@ -397,11 +397,13 @@ async function saveResv(tab, recp) {
         console.error("Error saving data:", err);
       }
 
-      try {
-        const dbRefDel = firebaseRef(database, `lunch-resv/prepayment/${uid.value}/${resvPopupData.value.restaurantId}`);
-        await remove(dbRefDel); // key 업데이트
-      } catch (err) {
-        console.error("Error delete :", err);
+      if (recp) {
+        try {
+          const dbRefDel = firebaseRef(database, `lunch-resv/prepayment/${uid.value}/${resvPopupData.value.restaurantId}`);
+          await remove(dbRefDel); // key 업데이트
+        } catch (err) {
+          console.error("Error delete :", err);
+        }
       }
 
       await selectReservation();
@@ -618,8 +620,7 @@ onMounted(async () => {
       <v-data-table :headers="headers" :items="restaurant" no-data-text="조회중입니다." loading-text="조회중입니다."
         hide-default-footer items-per-page="-1" :show-items-per-page="false">
         <template v-slot:item.name="{ item }">
-          <v-btn :variant="item.isReceipt ? 'tonal' : 'flat'"
-            color="primary" class="px-1"
+          <v-btn :variant="item.isReceipt ? 'tonal' : 'flat'" color="primary" class="px-1"
             @click="onClickRestaurant(item)"><v-icon>{{ restaurantKind[item.kind] }}</v-icon> {{ item.name }}</v-btn>
         </template>
         <template v-slot:item.resvMenu="{ item }">
@@ -640,10 +641,12 @@ onMounted(async () => {
           </div>
         </template>
         <template #item.cost="{ item }">
-          <span v-if="item.cost > 0" :style="{color: item.isReceipt ? 'silver' : 'black'}">{{ item.cost.toLocaleString('ko-KR') }}</span>
+          <span v-if="item.cost > 0" :style="{ color: item.isReceipt ? 'silver' : 'black' }">{{
+            item.cost.toLocaleString('ko-KR') }}</span>
         </template>
         <template #item.prepay="{ item }">
-          <span v-if="item.cost > 0" :style="{color: item.isReceipt ? 'silver' : 'black'}">{{ item.prepay.toLocaleString('ko-KR') }}</span>
+          <span v-if="item.cost > 0" :style="{ color: item.isReceipt ? 'silver' : 'black' }">{{
+            item.prepay.toLocaleString('ko-KR') }}</span>
         </template>
       </v-data-table>
     </v-main>
@@ -689,7 +692,7 @@ onMounted(async () => {
                   <v-text-field v-model="item.date" variant="plain" type="date" />
                 </template>
                 <template #item.amount="{ item }">
-                  <v-text-field v-model="item.amount" variant="plain" type="number"/>
+                  <v-text-field v-model="item.amount" variant="plain" type="number" />
                 </template>
                 <template #item.delete="{ item, index }">
                   <v-btn icon="mdi-delete" variant="text" @click="onClickDelPrepay(index)" />
@@ -701,8 +704,8 @@ onMounted(async () => {
         <v-card-actions>
           <v-btn @click="shareResv()" icon="mdi-share-variant" variant="text"></v-btn>
           <v-spacer></v-spacer>
-          <v-btn @click="saveResv(resvTab, true)" :disabled="resvTab !== 'menu' || resvPopupData.isReceipt" icon="mdi-package-variant-closed-check"
-            variant="text"></v-btn>
+          <v-btn @click="saveResv(resvTab, true)" :disabled="resvTab !== 'menu' || resvPopupData.isReceipt"
+            icon="mdi-package-variant-closed-check" variant="text"></v-btn>
           <v-btn @click="saveResv(resvTab, false)" :disabled="resvPopupData.menu === ''" icon="mdi-content-save"
             variant="text"></v-btn>
           <v-btn @click="deleteResv(resvTab)" :disabled="resvPopupData.key === -1 && resvTab === 'menu'"
@@ -802,6 +805,7 @@ onMounted(async () => {
 }
 
 .semi-transparent-text {
-  opacity: 0.5; /* 50% 투명도 */
+  opacity: 0.5;
+  /* 50% 투명도 */
 }
 </style>
