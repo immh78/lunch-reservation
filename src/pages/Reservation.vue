@@ -850,7 +850,7 @@ onMounted(async () => {
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="isMenuImgPopup" max-width="600px">
+    <v-dialog v-model="isMenuImgPopup">
       <v-card>
         <AdvancedImage :cldImg="preview" :plugins="[responsive(), placeholder({ mode: 'blur' })]"
         class="max-w-full rounded-lg shadow" />
