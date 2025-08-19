@@ -851,10 +851,10 @@ onMounted(async () => {
       </v-card>
     </v-dialog>
     <v-dialog v-model="isMenuImgPopup">
-      <v-card>
+    
         <AdvancedImage :cldImg="preview" :plugins="[responsive(), placeholder({ mode: 'blur' })]"
         class="max-w-full rounded-lg shadow" />
-      </v-card>
+     
     </v-dialog>
 
     <v-snackbar v-model="isSaveNotice">저장 완료!</v-snackbar>
