@@ -169,16 +169,16 @@ function close() {
           variant="outlined" />
 
         <v-text-field v-model="local.telNo" label="전화번호" variant="outlined" />
+        <v-text-field v-model="local.menuUrl" label="메뉴 URL" variant="outlined" class="menu-url-field" />
 
         <v-row>
           <v-col cols="10">
-            <v-text-field v-if="local.menuImgId" v-model="local.menuImgId" label="메뉴 이미지 ID" variant="outlined"
-              class="menu-url-field" />
-            <v-text-field v-else v-model="local.menuUrl" label="메뉴 URL" variant="outlined" class="menu-url-field" />
+            <v-text-field v-model="local.menuImgId" label="메뉴 이미지 ID" variant="outlined"
+              class="menu-url-field" />            
           </v-col>
-          <v-col cols="2" class="d-flex justify-center align-center">
+          <v-col cols="2" class="d-flex justify-center align-start">
             <v-btn @click="openWidget" icon="mdi-camera" variant="text" />
-          </v-col>
+          </v-col>          
         </v-row>
 
         <v-alert v-if="!props.isAdd && !local.id" type="warning" variant="tonal" class="mt-2">
@@ -210,4 +210,6 @@ function close() {
   white-space: nowrap;
   overflow-x: auto;
 }
+
+
 </style>
