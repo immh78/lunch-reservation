@@ -457,9 +457,9 @@ async function saveRestaurant() {
   const data = {
     "name": restaurantInfo.value.name,
     "telNo": restaurantInfo.value.telNo,
-    "menuUrl": restaurantInfo.value.menuUrl,
+    "menuUrl": restaurantInfo.value.menuUrl || '',
     "kind": restaurantInfo.value.kind,
-    "menuImgId": restaurantInfo.value.menuImgId,
+    "menuImgId": restaurantInfo.value.menuImgId || '',
   }
 
   try {
