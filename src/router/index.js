@@ -8,9 +8,15 @@ import Login from '../pages/Login.vue';
 
 const routes = [
   {
-    path: '/',
+    path: '/main',
     name: 'Main',
     component: Main,
+    meta: { requiresAuth: true, loggable: true }
+  },
+  {
+    path: '/',
+    name: 'Reservation',
+    component: Reservation,
     meta: { requiresAuth: true, loggable: true }
   },
   {
