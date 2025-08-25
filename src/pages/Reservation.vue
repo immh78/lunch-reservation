@@ -284,7 +284,7 @@ function getFormatedDate(raw) {
 }
 
 function getNewKey(arr) {
-  let key = 0;
+let key = 0;
   if (arr) {
     const keys = arr.map(item => item.key);
     // 0부터 순차적으로 증가하며 비어있는 값을 찾기
@@ -365,12 +365,14 @@ function menuList(id) {
 }
 
 function onClickListMenu(item) {
-  resvPopupData.value = item;
+  resvPopupData.value = {...item};
   resvPopupData.value.resvDate = getNextFridayFormatted();
-  resvPopupData.value.key === -1;
+  resvPopupData.value.key = -1;
 
   isListPopup.value = false;
   isResvPopup.value = true;
+
+  console.log("resvPopupData", resvPopupData.value);
 }
 
 async function deleteResv(tab) {
@@ -391,7 +393,6 @@ async function deleteResv(tab) {
 }
 
 async function saveResv(tab, recp) {
-  //console.log("menu", resv.value);
   if (tab === 'menu') {
     if (resvPopupData.value.menu !== '') {
 
@@ -406,6 +407,8 @@ async function saveResv(tab, recp) {
           "resvDate": resvPopupData.value.resvDate.replace(/-/g, '')
         }
       }
+
+      //console.log("data to save", data);
 
       try {
         const dbRef = firebaseRef(database, "lunch-resv/reservation/" + uid.value);
