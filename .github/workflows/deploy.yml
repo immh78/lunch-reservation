@@ -34,12 +34,10 @@ jobs:
           VITE_FIREBASE_MEASUREMENT_ID=${{ secrets.FIREBASE_MEASUREMENT_ID }}
           VITE_CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
           VITE_CLOUDINARY_UPLOAD_PRESET=${{ secrets.CLOUDINARY_UPLOAD_PRESET }}
-          # 필요 시 Vite base 경로 지정 (GitHub Pages에서 /<repo-name>/)
-          # VITE_BASE_URL=/vite-project/
           EOF
 
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build Project
         env:
