@@ -5,6 +5,9 @@ on:
     branches:
       - main  # 또는 master, 본인 사용 브랜치로 수정
 
+permissions:
+  contents: write  # gh-pages 브랜치에 푸시 권한
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -16,12 +19,32 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 18          
+      # 🔐 GitHub Secrets -> .env.production 생성 (Vite 전용)
+      - name: Create .env.production from GitHub Secrets
+        run: |
+          cat << 'EOF' > .env.production
+          VITE_FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN=${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_DATABASE_URL=${{ secrets.FIREBASE_DATABASE_URL }}
+          VITE_FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET=${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }}
+          VITE_FIREBASE_MEASUREMENT_ID=${{ secrets.FIREBASE_MEASUREMENT_ID }}
+          VITE_CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          VITE_CLOUDINARY_UPLOAD_PRESET=${{ secrets.CLOUDINARY_UPLOAD_PRESET }}
+          # 필요 시 Vite base 경로 지정 (GitHub Pages에서 /<repo-name>/)
+          # VITE_BASE_URL=/vite-project/
+          EOF
 
       - name: Install Dependencies
         run: npm install
 
       - name: Build Project
+        env:
+          # 빌드 시 환경 필요하면 여기에 추가 가능
+          NODE_ENV: production      
         run: npm run build
 
       - name: Deploy to GitHub Pages
