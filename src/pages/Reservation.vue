@@ -107,7 +107,7 @@ async function logout() {
 };
 
 function nextLunch() {
-  router.push("/");
+  router.push("/main");
 }
 
 function addRestraurant() {
