@@ -369,6 +369,8 @@ function onClickListMenu(item) {
   resvPopupData.value.resvDate = getNextFridayFormatted();
   resvPopupData.value.key = -1;
 
+  prepayPopupData.value = [];
+
   isListPopup.value = false;
   isResvPopup.value = true;
 
