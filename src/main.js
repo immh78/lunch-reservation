@@ -19,7 +19,16 @@ import '@mdi/font/css/materialdesignicons.css';
 import { createPinia } from 'pinia';
 import persistedState from 'pinia-plugin-persistedstate'; 
 
-const vuetify = createVuetify({ components, directives });
+const vuetify = createVuetify({ components, directives,
+    defaults: {
+        global: {
+          font: '', // 기본 폰트 해제
+        },
+      },
+      defaultAssets: {
+        font: false, // Roboto 자동 불러오기 방지
+      },
+ });
 const pinia = createPinia();
 pinia.use(persistedState); 
 
